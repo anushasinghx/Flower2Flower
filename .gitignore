@@ -1,0 +1,15 @@
+node_modules/
+dist/
+bin/
+obj/
+.vs/
+.idea/
+.vscode/
+.env
+*.log
+.DS_Store
+# keep backup folders, ignore the actual dump files
+backup/database/*
+backup/media/*
+!backup/database/.gitkeep
+!backup/media/.gitkeep

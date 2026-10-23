@@ -1,2 +1,7 @@
 # Flower2Flower
-Full-stack application using ASP.NET Core, React, MySQL, and Python
+
+
+
+- `backend`  – .NET API + MySQL (one folder per module under `src/Modules`)
+- `frontend` – React PWA (English + Hindi), features mirror backend modules
+- `backup`   – database dumps, media backups and backup scripts
