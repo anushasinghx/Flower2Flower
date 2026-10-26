@@ -6,6 +6,8 @@ obj/
 .idea/
 .vscode/
 .env
+backend/.env.backend
+.tools/
 *.log
 .DS_Store
 # keep backup folders, ignore the actual dump files
