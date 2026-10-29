@@ -1,21 +1,51 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import flowerLogo from '../../assets/flower.jpg'
+
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const navigate = useNavigate()
 
   const navLinks = [
-    { name: 'Home', href: '#home' },
+    { name: 'Home', href: '/' },
     { name: 'About Us', href: '#about' },
     { name: 'How It Works', href: '#how-it-works' },
     { name: 'Marketplace', href: '#marketplace' },
   ]
 
+  const handleAuthNavigation = () => {
+    setIsMenuOpen(false)
+    navigate('/auth')
+  }
+
+  const handleNavClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    href: string,
+  ) => {
+    if (href === '/') {
+      e.preventDefault()
+      setIsMenuOpen(false)
+      navigate('/')
+    } else {
+      setIsMenuOpen(false)
+    }
+  }
+
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-white/10 bg-black/40 backdrop-blur-xl">
       <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between px-5 py-3 md:px-10">
-        <a href="#home" className="flex items-center gap-2">
+        <a
+          href="/"
+          onClick={(e) => {
+            e.preventDefault()
+            setIsMenuOpen(false)
+            navigate('/')
+          }}
+          className="flex items-center gap-2"
+        >
           <img
             src={flowerLogo}
+            alt="Flower2Flower logo"
             className="h-9 w-9 rounded-full object-cover"
           />
           <span className="text-lg font-semibold tracking-wide text-white">
@@ -29,25 +59,29 @@ const Navbar = () => {
             <a
               key={link.name}
               href={link.href}
+              onClick={(e) => handleNavClick(e, link.href)}
               className="text-sm text-white/75 transition-colors duration-200 hover:text-white"
             >
               {link.name}
             </a>
           ))}
 
-          <a
-            href="#login"
+          <button
+            type="button"
+            onClick={handleAuthNavigation}
             className="rounded-full border border-white/30 px-5 py-2 text-sm text-white transition-colors duration-200 hover:bg-white hover:text-black"
           >
             Login / Sign Up
-          </a>
+          </button>
         </div>
 
-        {/* Mobile hamburger button */}
+        
         <button
           type="button"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          aria-label={isMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+          aria-label={
+            isMenuOpen ? 'Close navigation menu' : 'Open navigation menu'
+          }
           aria-expanded={isMenuOpen}
           className="flex h-10 w-10 flex-col items-center justify-center gap-1.5 rounded-lg border border-white/20 md:hidden"
         >
@@ -69,7 +103,7 @@ const Navbar = () => {
         </button>
       </div>
 
-      {/* Mobile navigation menu */}
+      
       {isMenuOpen && (
         <div className="border-t border-white/10 bg-black/90 px-5 py-5 backdrop-blur-xl md:hidden">
           <div className="flex flex-col gap-5">
@@ -77,20 +111,20 @@ const Navbar = () => {
               <a
                 key={link.name}
                 href={link.href}
-                onClick={() => setIsMenuOpen(false)}
+                onClick={(e) => handleNavClick(e, link.href)}
                 className="text-sm text-white/80 transition-colors hover:text-white"
               >
                 {link.name}
               </a>
             ))}
 
-            <a
-              href="#login"
-              onClick={() => setIsMenuOpen(false)}
+            <button
+              type="button"
+              onClick={handleAuthNavigation}
               className="w-fit rounded-full border border-white/30 px-5 py-2 text-sm text-white hover:bg-white hover:text-black"
             >
               Login / Sign Up
-            </a>
+            </button>
           </div>
         </div>
       )}
