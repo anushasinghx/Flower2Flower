@@ -1,5 +1,61 @@
 @import "tailwindcss";
 
+@theme {
+  --color-night: #0f1512;
+  --color-surface: #17211b;
+  --color-raised: #212c26;
+  --color-line: #2c3a31;
+  --color-ink: #ecefe9;
+  --color-muted: #a7b4ab;
+  --color-marigold: #f2a33a;
+  --color-marigold-ink: #1a1206;
+  --color-tulsi: #8ccb9b;
+  --color-sindoor: #f0b39f;
+  --color-saffron: #ff9933;
+  --font-display: "Tiro Devanagari Hindi", Georgia, serif;
+  --font-body: "Mukta", "Nirmala UI", Arial, sans-serif;
+}
+
+.app-theme {
+  min-height: 100vh;
+  background: var(--color-night);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.app-theme input,
+.app-theme select,
+.app-theme textarea {
+  font-size: 1rem;
+}
+
+.app-theme ::placeholder {
+  color: #7f8d84;
+}
+
+.app-theme :focus-visible {
+  outline: 2px solid var(--color-marigold);
+  outline-offset: 2px;
+}
+
+.app-theme input[type="date"] {
+  color-scheme: dark;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
 :root {
   font-family: Arial, Helvetica, sans-serif;
   font-synthesis: none;

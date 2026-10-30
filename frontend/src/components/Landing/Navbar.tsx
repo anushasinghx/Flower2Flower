@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import flowerLogo from '../../assets/flower.jpg'
+import { LogoLockup } from '../Brand/Logo'
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -43,14 +43,7 @@ const Navbar = () => {
           }}
           className="flex items-center gap-2"
         >
-          <img
-            src={flowerLogo}
-            alt="Flower2Flower logo"
-            className="h-9 w-9 rounded-full object-cover"
-          />
-          <span className="text-lg font-semibold tracking-wide text-white">
-            Flower2Flower
-          </span>
+          <LogoLockup size="sm" subtitle="" />
         </a>
 
         {/* Desktop navigation */}
