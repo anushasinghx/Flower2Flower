@@ -4,8 +4,8 @@ import ScreenHeader from '../../components/Layout/ScreenHeader'
 import { Button, Card, Steps } from '../../components/ui/kit'
 import { useOnboardingSteps } from './steps'
 import { useStore, useT } from '../../store/appStore'
-import { completeLogin, isReturningMobile } from '../../store/actions'
-import { DEMO_ADMIN_MOBILE, DEMO_OTP } from '../../services/mockData'
+import { completeLogin, homeFor, isReturningMobile } from '../../store/actions'
+import { DEMO_OTP } from '../../services/mockData'
 import { maskMobile } from '../../utils/points'
 
 const MAX_ATTEMPTS = 3
@@ -42,8 +42,7 @@ const VerifyOtp = () => {
       isReturningMobile(mobile) || mobile === state.devotee.mobile
     run(completeLogin)
 
-    if (mobile === DEMO_ADMIN_MOBILE) navigate('/admin')
-    else navigate(returning ? '/app' : '/onboarding/profile')
+    navigate(homeFor(mobile, returning))
   }
 
   return (

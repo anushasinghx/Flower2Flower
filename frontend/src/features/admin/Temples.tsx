@@ -42,6 +42,7 @@ const StatusPill = ({ status }: { status: TempleStatus }) => {
   if (status === 'needsChanges') {
     return <Pill tone="warning">{t('Needs changes')}</Pill>
   }
+  if (status === 'draft') return <Pill>{t('Draft')}</Pill>
   return <Pill tone="marigold">{t('Pending')}</Pill>
 }
 

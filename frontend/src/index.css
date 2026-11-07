@@ -88,22 +88,6 @@ body {
   text-align: left;
 }
 
-@keyframes flower-scroll {
-  from {
-    transform: translateX(0);
-  }
-
-  to {
-    transform: translateX(-50%);
-  }
-}
-
-.animate-scroll {
-  animation: flower-scroll 30s linear infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .animate-scroll {
-    animation: none;
-  }
+html {
+  scroll-padding-top: 4.5rem;
 }

@@ -3,7 +3,7 @@ import { StoreContext } from './appStore'
 import type { AppState } from './types'
 import { initialState } from '../services/mockData'
 
-const STORAGE_KEY = 'flower2flower.demo.v1'
+const STORAGE_KEY = 'flower2flower.demo.v3'
 
 const loadState = (): AppState => {
   try {

@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { LogoLockup, LogoMark } from '../Brand/Logo'
 import Icon, { type IconName } from '../ui/Icon'
 import LangSwitch from './LangSwitch'
+import LogoutButton from './LogoutButton'
 import { useStore, useT } from '../../store/appStore'
-import { logout, resetDemo } from '../../store/actions'
+import { resetDemo } from '../../store/actions'
 
 type NavItem = { to: string; label: string; icon: IconName }
 
@@ -25,6 +26,7 @@ const navGroups: { label: string; items: NavItem[] }[] = [
     items: [
       { to: '/admin/rules', label: 'Rules and levels', icon: 'sliders' },
       { to: '/admin/alerts', label: 'Alerts and held', icon: 'bell' },
+      { to: '/admin/deposits', label: 'Deposit history', icon: 'list' },
     ],
   },
   {
@@ -94,7 +96,6 @@ const SideNav = ({
 const AdminMenu = () => {
   const { run, toast } = useStore()
   const t = useT()
-  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -138,18 +139,6 @@ const AdminMenu = () => {
             <Icon name="reset" size={18} />
             {t('Reset demo data')}
           </button>
-          <button
-            type="button"
-            role="menuitem"
-            onClick={() => {
-              run(logout)
-              navigate('/welcome')
-            }}
-            className="flex min-h-11 w-full items-center gap-2 rounded-xl px-3 text-left text-sindoor hover:bg-raised"
-          >
-            <Icon name="logout" size={18} />
-            {t('Log out')}
-          </button>
         </div>
       )}
     </div>
@@ -191,6 +180,7 @@ const AdminShell = () => {
             </span>
             <LangSwitch />
             <AdminMenu />
+            <LogoutButton />
           </div>
         </div>
       </header>

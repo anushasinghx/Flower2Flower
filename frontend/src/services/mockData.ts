@@ -1,9 +1,61 @@
-import type { AppState } from '../store/types'
+import type { AppState, Deposit } from '../store/types'
 
 // All sample data lives here until the real API is connected.
 export const DEMO_ADMIN_MOBILE = '9000000000'
 export const DEMO_DEVOTEE_MOBILE = '9876541234'
+export const DEMO_OPERATOR_MOBILE = '9000004444'
+export const DEMO_TEMPLE_MOBILE = '9000006666'
 export const DEMO_OTP = '123456'
+
+const minutesAgo = (minutes: number) =>
+  new Date(Date.now() - minutes * 60000).toISOString()
+const daysAgo = (days: number) =>
+  new Date(Date.now() - days * 86400000).toISOString()
+
+// Three weeks of past counter deposits so every history screen has data.
+// Rejections are older than a week so they never trip the weekly limit.
+const pastDevotees = [
+  { mobile: '9812345678', name: 'Asha Verma', multiplier: 1.2 },
+  { mobile: '9898765432', name: 'Ramesh Gupta', multiplier: 1 },
+  { mobile: '9811122233', name: 'Meena Sharma', multiplier: 1 },
+  { mobile: '9822205678', name: 'Deepak Nair', multiplier: 1 },
+  { mobile: '9811101234', name: 'Kavita Rao', multiplier: 1 },
+]
+const pastWaste = [
+  { waste: 'Flowers', rate: 100 },
+  { waste: 'Leaves', rate: 100 },
+  { waste: 'Garlands', rate: 80 },
+  { waste: 'Coconut shells', rate: 20 },
+]
+const pastKg = [0.8, 1.5, 2, 1.2, 3, 0.6, 2.5]
+const pastReasons = ['Plastic or foreign material', 'Mixed with food waste']
+
+const pastDeposits: Deposit[] = Array.from({ length: 40 }, (_, index) => {
+  const day = 1 + Math.floor(index / 2)
+  const person = pastDevotees[index % pastDevotees.length]
+  const kind = pastWaste[(index * 3) % pastWaste.length]
+  const kg = pastKg[index % pastKg.length]
+  const rejected = day >= 8 && index % 7 === 3
+
+  return {
+    id: `D${2026 - index}`,
+    at: new Date(
+      Date.now() - day * 86400000 - (index % 4) * 5400000,
+    ).toISOString(),
+    mobile: person.mobile,
+    name: person.name,
+    templeId: index % 3 === 2 ? 't2' : 't1',
+    waste: kind.waste,
+    kg,
+    points: rejected ? 0 : Math.round(kg * kind.rate * person.multiplier),
+    charge: 0,
+    status: rejected ? 'rejected' : 'accepted',
+    reason: rejected ? pastReasons[index % 2] : '',
+    note: '',
+    synced: true,
+    conflict: false,
+  }
+})
 
 export const initialState: AppState = {
   lang: 'en',
@@ -464,6 +516,7 @@ export const initialState: AppState = {
       badge: '',
       note: '',
       history: ['Submitted, 22 Oct'],
+      submitted: '22 Oct',
     },
     {
       id: 't4',
@@ -477,6 +530,7 @@ export const initialState: AppState = {
       badge: '',
       note: '',
       history: ['Submitted, 21 Oct'],
+      submitted: '21 Oct',
     },
     {
       id: 't5',
@@ -490,6 +544,7 @@ export const initialState: AppState = {
       badge: '',
       note: 'Committee letter is not readable. Please upload again.',
       history: ['Submitted, 18 Oct', 'Changes requested by Admin, 20 Oct'],
+      submitted: '18 Oct',
     },
   ],
   rules: {
@@ -516,6 +571,14 @@ export const initialState: AppState = {
         waste: 'Coconut shells',
         ptsPerKg: 20,
         maxPerDay: 5,
+        active: true,
+        charge: null,
+      },
+      {
+        id: 'r5',
+        waste: 'Garlands',
+        ptsPerKg: 80,
+        maxPerDay: 10,
         active: true,
         charge: null,
       },
@@ -700,6 +763,162 @@ export const initialState: AppState = {
       status: 'suspended',
     },
   ],
+  devotees: [
+    {
+      mobile: '9811101234',
+      name: 'Kavita Rao',
+      level: 1,
+      kyc: 'inReview',
+      societyId: null,
+      flagged: true,
+    },
+    {
+      mobile: '9822205678',
+      name: 'Deepak Nair',
+      level: 1,
+      kyc: 'inReview',
+      societyId: 's2',
+      flagged: false,
+    },
+    {
+      mobile: '9898765432',
+      name: 'Ramesh Gupta',
+      level: 2,
+      kyc: 'verified',
+      societyId: 's2',
+      flagged: false,
+    },
+    {
+      mobile: '9812345678',
+      name: 'Asha Verma',
+      level: 3,
+      kyc: 'verified',
+      societyId: 's1',
+      flagged: false,
+    },
+    {
+      mobile: '9811122233',
+      name: 'Meena Sharma',
+      level: 2,
+      kyc: 'verified',
+      societyId: null,
+      flagged: false,
+    },
+  ],
+  deposits: [
+    {
+      id: 'D2040',
+      at: minutesAgo(25),
+      mobile: '9812345678',
+      name: 'Asha Verma',
+      templeId: 't1',
+      waste: 'Flowers',
+      kg: 2.5,
+      points: 300,
+      charge: 0,
+      status: 'accepted',
+      reason: '',
+      note: '',
+      synced: true,
+      conflict: false,
+    },
+    {
+      id: 'D2039',
+      at: minutesAgo(40),
+      mobile: '9898765432',
+      name: 'Ramesh Gupta',
+      templeId: 't1',
+      waste: 'Leaves',
+      kg: 1,
+      points: 100,
+      charge: 0,
+      status: 'accepted',
+      reason: '',
+      note: '',
+      synced: true,
+      conflict: false,
+    },
+    {
+      id: 'D2038',
+      at: minutesAgo(55),
+      mobile: '9822205678',
+      name: 'Deepak Nair',
+      templeId: 't1',
+      waste: 'Flowers',
+      kg: 0.6,
+      points: 0,
+      charge: 0,
+      status: 'rejected',
+      reason: 'Plastic or foreign material',
+      note: '',
+      synced: true,
+      conflict: false,
+    },
+    {
+      id: 'D2037',
+      at: minutesAgo(80),
+      mobile: '9811122233',
+      name: 'Meena Sharma',
+      templeId: 't1',
+      waste: 'Garlands',
+      kg: 1.5,
+      points: 120,
+      charge: 0,
+      status: 'accepted',
+      reason: '',
+      note: '',
+      synced: true,
+      conflict: false,
+    },
+    {
+      id: 'D2031',
+      at: daysAgo(3),
+      mobile: '9876541234',
+      name: 'Sunita',
+      templeId: 't1',
+      waste: 'Flowers',
+      kg: 0.4,
+      points: 0,
+      charge: 0,
+      status: 'rejected',
+      reason: 'Plastic or foreign material',
+      note: '',
+      synced: true,
+      conflict: false,
+    },
+    {
+      id: 'D2027',
+      at: daysAgo(5),
+      mobile: '9876541234',
+      name: 'Sunita',
+      templeId: 't1',
+      waste: 'Flowers',
+      kg: 0.3,
+      points: 0,
+      charge: 0,
+      status: 'rejected',
+      reason: 'Mixed with food waste',
+      note: '',
+      synced: true,
+      conflict: false,
+    },
+    ...pastDeposits,
+  ],
+  closedCollections: [
+    { id: 'cc1', source: 'Shiv Mandir, Shipra Sun City', date: '28 Oct', kg: 91, used: false },
+    { id: 'cc2', source: 'Durga Mandir, Niti Khand', date: '28 Oct', kg: 58, used: false },
+    { id: 'cc3', source: 'Shiv Mandir, Shipra Sun City', date: '29 Oct', kg: 84, used: false },
+    { id: 'cc4', source: 'Hanuman Mandir, Vaibhav Khand', date: '29 Oct', kg: 37, used: false },
+  ],
+  notices: [],
+  operator: {
+    templeId: 't1',
+    offline: false,
+    lastSync: '',
+    draft: null,
+    lastDepositId: '',
+  },
+  templeAdmin: { templeId: null },
   audit: [
     {
       id: 'x5',
@@ -810,10 +1029,3 @@ export const kpisByRange = {
     retention: 61,
   },
 }
-
-export const closedCollections = [
-  { id: 'cc1', source: 'Shiv Mandir, Shipra Sun City', date: '28 Oct', kg: 91 },
-  { id: 'cc2', source: 'Durga Mandir, Niti Khand', date: '28 Oct', kg: 58 },
-  { id: 'cc3', source: 'Shiv Mandir, Shipra Sun City', date: '29 Oct', kg: 84 },
-  { id: 'cc4', source: 'Hanuman Mandir, Vaibhav Khand', date: '29 Oct', kg: 37 },
-]

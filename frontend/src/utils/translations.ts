@@ -380,6 +380,7 @@ export const translations: Record<string, string> = {
   'Thank you. Your feedback was sent.': 'धन्यवाद। आपका सुझाव भेज दिया गया।',
   'Profile saved.': 'प्रोफ़ाइल सहेजी गई।',
   'Log out': 'लॉग आउट',
+  'You are logged out.': 'आप लॉग आउट हो गए हैं।',
   'Reset demo data': 'डेमो डेटा रीसेट करें',
   'Demo data was reset.': 'डेमो डेटा रीसेट हो गया।',
 
@@ -729,4 +730,394 @@ export const translations: Record<string, string> = {
   'Verified by Admin': 'एडमिन ने सत्यापित किया',
   'Changes requested by Admin': 'एडमिन ने बदलाव माँगे',
   'Added by Admin': 'एडमिन ने जोड़ा',
+  // Public home page
+  'Privacy Notice': 'निजता सूचना',
+  Terms: 'नियम',
+  'How it works': 'यह कैसे काम करता है',
+  'Collection points': 'संग्रह केंद्र',
+  'Log in': 'लॉग इन',
+  Register: 'पंजीकरण',
+  'Close menu': 'मेनू बंद करें',
+  '[Office address]': '[कार्यालय का पता]',
+  '[Phone] · [Email]': '[फ़ोन] · [ईमेल]',
+  Message: 'संदेश',
+  'Thank you. Your message was sent.': 'धन्यवाद। आपका संदेश भेज दिया गया।',
+  Send: 'भेजें',
+  'Contact details are placeholders until the final details are confirmed.':
+    'अंतिम विवरण तय होने तक संपर्क विवरण अस्थायी हैं।',
+  'Draft summary for the pilot. The final legal text will replace this page.':
+    'पायलट के लिए मसौदा सारांश। अंतिम कानूनी पाठ इस पेज की जगह लेगा।',
+  'nirmalya offered so far': 'अब तक अर्पित निर्माल्य',
+  'CO₂e kept out of the air': 'हवा में जाने से रोकी गई CO₂e',
+  'organic manure made': 'बनी जैविक खाद',
+  'devotees taking part': 'भाग लेने वाले भक्त',
+  'Offer at the counter': 'काउंटर पर अर्पण करें',
+  'Show your QR or say your mobile number at the temple counter.':
+    'मंदिर के काउंटर पर अपना QR दिखाएँ या मोबाइल नंबर बताएँ।',
+  'Weighed and photographed': 'तौल और फ़ोटो',
+  'The operator records each type and takes a purity photo. You get a message with your points.':
+    'ऑपरेटर हर प्रकार दर्ज करते हैं और शुद्धता की फ़ोटो लेते हैं। आपको अंकों के साथ संदेश मिलता है।',
+  'Composted with care': 'सावधानी से खाद बनाई जाती है',
+  'Pushp Vatika turns the offerings into organic manure, batch by batch.':
+    'पुष्प वाटिका अर्पण को बैच दर बैच जैविक खाद में बदलती है।',
+  'Back to your garden': 'आपके बगीचे तक वापस',
+  'Use your points for manure, or buy packs for your home and society garden.':
+    'अंकों से खाद लें, या घर और सोसाइटी के बगीचे के लिए पैक खरीदें।',
+  'Added to cart. Log in to check out.':
+    'कार्ट में जोड़ा गया। चेकआउट के लिए लॉग इन करें।',
+  'Shipra pilot · Indirapuram': 'शिप्रा पायलट · इंदिरापुरम',
+  'Bring the flowers, leaves and ash from your puja to a Flower2Flower counter at your temple. We turn them into organic manure, and every 100 g earns you 10 points.':
+    'अपनी पूजा के फूल, पत्ते और भस्म अपने मंदिर के Flower2Flower काउंटर पर लाएँ। हम इन्हें जैविक खाद में बदलते हैं, और हर 100 ग्राम पर आपको 10 अंक मिलते हैं।',
+  'Register with your mobile': 'मोबाइल से पंजीकरण करें',
+  'Find a collection point': 'संग्रह केंद्र खोजें',
+  'Your sacred offering of 0.65 kg has been received for nature’s service. Points: +57. Balance: 1,184.':
+    'आपका 0.65 किलो का पवित्र अर्पण प्रकृति की सेवा के लिए प्राप्त हुआ। अंक: +57। शेष: 1,184।',
+  'Example message. Every deposit is weighed and photographed at the counter.':
+    'उदाहरण संदेश। हर जमा काउंटर पर तौला जाता है और उसकी फ़ोटो ली जाती है।',
+  'From your puja thali back to the soil': 'आपकी पूजा की थाली से वापस मिट्टी तक',
+  'Four steps, about a minute at the counter.':
+    'चार कदम, काउंटर पर लगभग एक मिनट।',
+  'We accept': 'हम स्वीकार करते हैं',
+  'Dried or fresh flowers, leaves, ash (vibhooti). Broken idols at ₹10 per kg.':
+    'सूखे या ताज़े फूल, पत्ते, भस्म (विभूति)। खंडित मूर्तियाँ ₹10 प्रति किलो पर।',
+  'Please leave out': 'कृपया न लाएँ',
+  'Plastic bags, synthetic thread, foil and food waste. Offerings with plastic are returned.':
+    'प्लास्टिक की थैली, सिंथेटिक धागा, पन्नी और खाने का कचरा। प्लास्टिक वाला अर्पण लौटा दिया जाता है।',
+  'Points that grow with you': 'आपके साथ बढ़ने वाले अंक',
+  '100 g = 10 points. Levels follow your lifetime points, so using points never lowers your level. Complete KYC to use your points.':
+    '100 ग्राम = 10 अंक। स्तर आपके कुल अंकों पर चलते हैं, इसलिए अंक उपयोग करने से स्तर कभी नहीं घटता। अंक उपयोग के लिए KYC पूरा करें।',
+  '{from} to {to} points.': '{from} से {to} अंक।',
+  'Above {from} points.': '{from} अंक से अधिक।',
+  'Earn {multiplier}x on every offering.': 'हर अर्पण पर {multiplier} गुना अंक।',
+  '100 bonus points when KYC is verified.': 'KYC सत्यापित होने पर 100 बोनस अंक।',
+  'Collection points near you': 'आपके पास संग्रह केंद्र',
+  'Verified temples with a Flower2Flower counter.':
+    'Flower2Flower काउंटर वाले सत्यापित मंदिर।',
+  'Search by PIN code or area': 'पिन कोड या क्षेत्र से खोजें',
+  'No collection point matches this search yet.':
+    'इस खोज से अभी कोई संग्रह केंद्र नहीं मिला।',
+  'Get directions': 'रास्ता देखें',
+  'Manure made from offerings': 'अर्पण से बनी खाद',
+  'Pay with UPI or with your points. Pick up at your temple, or get it delivered within 1 km for ₹10.':
+    'UPI या अंकों से भुगतान करें। मंदिर से लें, या ₹10 में 1 किमी के भीतर डिलीवरी पाएँ।',
+  'Join with your mobile number': 'अपने मोबाइल नंबर से जुड़ें',
+  'For adults 18 and above. Your points are held until your KYC is verified, then the 100 point welcome bonus is added.':
+    '18 वर्ष और उससे अधिक आयु के लिए। KYC सत्यापित होने तक अंक रुके रहते हैं, फिर 100 अंकों का स्वागत बोनस जुड़ता है।',
+  'By continuing you agree to the': 'आगे बढ़कर आप सहमत होते हैं',
+  and: 'और',
+  'Working at a temple?': 'मंदिर में काम करते हैं?',
+  'Counter operator login': 'काउंटर ऑपरेटर लॉगिन',
+  'Register your temple': 'अपना मंदिर पंजीकृत करें',
+  'Demo login: {devotee} opens Sunita, {admin} opens the Admin console, {operator} opens the temple counter, {temple} opens temple registration, and any other number starts a new signup. OTP is {otp}.':
+    'डेमो लॉगिन: {devotee} से सुनीता का खाता, {admin} से एडमिन कंसोल, {operator} से मंदिर काउंटर, {temple} से मंदिर पंजीकरण खुलता है, और कोई अन्य नंबर नया पंजीकरण शुरू करता है। OTP {otp} है।',
+
+  // Operator
+  'All synced.': 'सब सिंक हो गया।',
+  'Offline · working locally · {count} queued':
+    'ऑफ़लाइन · डिवाइस पर काम · {count} कतार में',
+  'Syncing · {count} left': 'सिंक हो रहा है · {count} बाकी',
+  'Online · {temple} · last sync {time}': 'ऑनलाइन · {temple} · आखिरी सिंक {time}',
+  'Online · {temple}': 'ऑनलाइन · {temple}',
+  'Temple counter': 'मंदिर काउंटर',
+  'Collection point': 'संग्रह केंद्र',
+  'Find devotee': 'भक्त खोजें',
+  'Daily summary': 'दैनिक सारांश',
+  'Sync queue': 'सिंक कतार',
+  'Go back online (demo)': 'फिर ऑनलाइन जाएँ (डेमो)',
+  'Work offline (demo)': 'ऑफ़लाइन काम करें (डेमो)',
+  'Incorrect code. Try again.': 'गलत कोड। फिर से कोशिश करें।',
+  'Registered mobile number': 'पंजीकृत मोबाइल नंबर',
+  'Verify and sign in': 'सत्यापित करें और साइन इन करें',
+  'Change number': 'नंबर बदलें',
+  'No closed collection days yet. Operators close a day from their daily summary.':
+    'अभी कोई बंद संग्रह दिन नहीं। ऑपरेटर दैनिक सारांश से दिन बंद करते हैं।',
+  'Enter the name as on ID.': 'पहचान पत्र के अनुसार नाम दर्ज करें।',
+  'Enter the date of birth.': 'जन्म तिथि दर्ज करें।',
+  'The devotee must be 18 or older.': 'भक्त की आयु 18 या उससे अधिक होनी चाहिए।',
+  'Both consents are needed to register.': 'पंजीकरण के लिए दोनों सहमतियाँ ज़रूरी हैं।',
+  '{name} is registered. Continue with the deposit.':
+    '{name} पंजीकृत हो गए। जमा जारी रखें।',
+  'Register devotee': 'भक्त का पंजीकरण',
+  'The devotee confirms they are 18+. This is checked against the date of birth.':
+    'भक्त पुष्टि करते हैं कि उनकी आयु 18+ है। यह जन्म तिथि से जाँचा जाता है।',
+  'Consent (read aloud or shown to the devotee)':
+    'सहमति (भक्त को पढ़कर सुनाई या दिखाई गई)',
+  'Data processing and deposit rules': 'डेटा प्रक्रिया और जमा के नियम',
+  'KYC processing': 'KYC प्रक्रिया',
+  'Confirm and register': 'पुष्टि करें और पंजीकरण करें',
+  'Send OTP to devotee': 'भक्त को OTP भेजें',
+  'Assisted registrations are tagged with the operator name in the consent log and audit log. The devotee completes KYC later in the app.':
+    'सहायता से हुए पंजीकरण सहमति लॉग और ऑडिट लॉग में ऑपरेटर के नाम से दर्ज होते हैं। भक्त बाद में ऐप में KYC पूरा करते हैं।',
+  "Code from the devotee's phone": 'भक्त के फ़ोन पर आया कोड',
+  Waste: 'कचरा',
+  Weight: 'वज़न',
+  Photo: 'फ़ोटो',
+  Queued: 'कतार में',
+  Accepted: 'स्वीकृत',
+  'Deposit photo': 'जमा की फ़ोटो',
+  'Sample photo': 'नमूना फ़ोटो',
+  'No photo yet': 'अभी फ़ोटो नहीं',
+  'Total weight': 'कुल वज़न',
+  'By waste type': 'कचरे के प्रकार के अनुसार',
+  'No accepted deposits yet today.': 'आज अभी कोई स्वीकृत जमा नहीं।',
+  'Latest deposits': 'हाल के जमा',
+  'No deposits yet today': 'आज अभी कोई जमा नहीं',
+  'Pending sync': 'सिंक बाकी',
+  'Close the day': 'दिन बंद करें',
+  'Closed today with {kg}. The nursery can add it to a batch.':
+    'आज {kg} के साथ बंद हुआ। नर्सरी इसे बैच में जोड़ सकती है।',
+  'Closing sends today’s accepted weight to the nursery for a processing batch.':
+    'दिन बंद करने पर आज का स्वीकृत वज़न प्रसंस्करण बैच के लिए नर्सरी को जाता है।',
+  'Day closed. The nursery can now add it to a batch.':
+    'दिन बंद हुआ। नर्सरी अब इसे बैच में जोड़ सकती है।',
+  'Update the closed day': 'बंद दिन अपडेट करें',
+  'Close day and send to nursery': 'दिन बंद करें और नर्सरी को भेजें',
+  'Sync queued deposits before closing the day.':
+    'दिन बंद करने से पहले कतार के जमा सिंक करें।',
+  'Daily collection summary for the operator: deposits, weight, accepted and rejected.':
+    'ऑपरेटर के लिए दैनिक संग्रह सारांश: जमा, वज़न, स्वीकृत और अस्वीकृत।',
+  'No deposit saved yet': 'अभी कोई जमा सहेजा नहीं गया',
+  'Accepted, points held': 'स्वीकृत, अंक रोके गए',
+  'Deposit saved': 'जमा सहेजा गया',
+  '{points} pts held': '{points} अंक रोके गए',
+  '+{points} pts credited': '+{points} अंक जमा हुए',
+  '{points} pts pending': '{points} अंक बाकी',
+  'Charge collected: ₹{charge}': 'शुल्क लिया गया: ₹{charge}',
+  'Saved on this device. It will sync when online.':
+    'इस डिवाइस पर सहेजा गया। ऑनलाइन होने पर सिंक होगा।',
+  'New balance {points} pts': 'नया शेष {points} अंक',
+  'Next deposit (same devotee)': 'अगला जमा (वही भक्त)',
+  'New devotee': 'नए भक्त',
+  'The devotee gets an in app notice and a ledger entry. The deposit joins the next processing batch when the day is closed.':
+    'भक्त को ऐप में सूचना और बहीखाते में प्रविष्टि मिलती है। दिन बंद होने पर जमा अगले प्रसंस्करण बैच में जुड़ता है।',
+  "View today's summary": 'आज का सारांश देखें',
+  'Enter weight': 'वज़न दर्ज करें',
+  'Weight (kg)': 'वज़न (किलो)',
+  Keypad: 'कीपैड',
+  Delete: 'मिटाएँ',
+  'Above the {max} kg limit. An alert is raised for the admin and points are held.':
+    '{max} किलो की सीमा से अधिक। एडमिन के लिए अलर्ट बनेगा और अंक रोके जाएँगे।',
+  'Read back': 'पढ़कर सुनाएँ',
+  '"{kg} kg of {waste} for {name}"': '"{name} के लिए {kg} किलो {waste}"',
+  'Weight confirmed with devotee': 'भक्त से वज़न की पुष्टि हुई',
+  'Confirm and take photo': 'पुष्टि करें और फ़ोटो लें',
+  'Manual entry only in Phase 1. The weight must be above 0. Unusual values raise an anomaly flag.':
+    'चरण 1 में केवल हाथ से प्रविष्टि। वज़न 0 से अधिक होना चाहिए। असामान्य मान पर चेतावनी बनती है।',
+  'Look up': 'खोजें',
+  'Scan QR': 'QR स्कैन करें',
+  'Flagged for review': 'जाँच के लिए चिह्नित',
+  'This devotee has an open alert. Points may be held until an admin reviews it.':
+    'इस भक्त पर खुला अलर्ट है। एडमिन की जाँच तक अंक रोके जा सकते हैं।',
+  'Continue to deposit': 'जमा पर आगे बढ़ें',
+  'No account for this number.': 'इस नंबर का कोई खाता नहीं।',
+  'Register devotee (assisted)': 'भक्त का पंजीकरण करें (सहायता से)',
+  'Operators see masked mobile numbers only. A flagged devotee shows a warning tag.':
+    'ऑपरेटर केवल छिपे मोबाइल नंबर देखते हैं। चिह्नित भक्त पर चेतावनी दिखती है।',
+  'Use demo QR (Sunita)': 'डेमो QR उपयोग करें (सुनीता)',
+  "Point the camera at the devotee's QR code": 'कैमरा भक्त के QR कोड की ओर करें',
+  Login: 'लॉगिन',
+  Collect: 'संग्रह',
+  'Operator login': 'ऑपरेटर लॉगिन',
+  'This number is not registered as an operator.':
+    'यह नंबर ऑपरेटर के रूप में पंजीकृत नहीं है।',
+  'Demo: use {mobile} with OTP 123456.': 'डेमो: {mobile} और OTP 123456 उपयोग करें।',
+  'Temple or ghat': 'मंदिर या घाट',
+  'Start collection': 'संग्रह शुरू करें',
+  'Proof of Purity': 'शुद्धता का प्रमाण',
+  'Tap to open the camera': 'कैमरा खोलने के लिए छुएँ',
+  'Frame the full deposit': 'पूरा जमा फ़्रेम में लें',
+  'Take photo': 'फ़ोटो लें',
+  'Use a sample photo (demo)': 'नमूना फ़ोटो उपयोग करें (डेमो)',
+  Retake: 'फिर से लें',
+  'Use photo': 'फ़ोटो उपयोग करें',
+  'The photo is stored with the time, operator and deposit ID. Offline, it stays on the device and uploads on sync.':
+    'फ़ोटो समय, ऑपरेटर और जमा ID के साथ सहेजी जाती है। ऑफ़लाइन होने पर यह डिवाइस पर रहती है और सिंक पर अपलोड होती है।',
+  'Choose a reason to reject.': 'अस्वीकार करने का कारण चुनें।',
+  'Review deposit': 'जमा की जाँच',
+  'Charge to collect': 'लेने वाला शुल्क',
+  'INR charge collected': 'INR शुल्क लिया गया',
+  'Points to credit': 'जमा होने वाले अंक',
+  'The purity checklist is not complete. Go back to tick it, or reject the deposit.':
+    'शुद्धता जाँच सूची पूरी नहीं है। वापस जाकर चुनें, या जमा अस्वीकार करें।',
+  'You are offline. This deposit is saved on the device and syncs later.':
+    'आप ऑफ़लाइन हैं। यह जमा डिवाइस पर सहेजा जाएगा और बाद में सिंक होगा।',
+  'Accept deposit': 'जमा स्वीकार करें',
+  'Reject: contaminated': 'अस्वीकार करें: दूषित',
+  'Note (optional)': 'टिप्पणी (वैकल्पिक)',
+  'Rejection threshold flag': 'अस्वीकृति सीमा चेतावनी',
+  'This devotee has {count} rejections in 7 days (limit {limit}). A flag is raised for admin review.':
+    'इस भक्त की 7 दिन में {count} अस्वीकृतियाँ हैं (सीमा {limit})। एडमिन की जाँच के लिए चेतावनी बनेगी।',
+  'Confirm rejection': 'अस्वीकृति की पुष्टि करें',
+  'Back to accept': 'स्वीकार पर वापस',
+  'Rejected deposits earn no points. The photo and reason are saved and the devotee is told in the app.':
+    'अस्वीकृत जमा पर अंक नहीं मिलते। फ़ोटो और कारण सहेजे जाते हैं और भक्त को ऐप में बताया जाता है।',
+  'A step is missing for this deposit.': 'इस जमा का एक कदम बाकी है।',
+  Offline: 'ऑफ़लाइन',
+  Online: 'ऑनलाइन',
+  '{count} deposits waiting': '{count} जमा प्रतीक्षा में',
+  'Data is saved on this device. Do not clear browser data or log out.':
+    'डेटा इस डिवाइस पर सहेजा है। ब्राउज़र डेटा न मिटाएँ और लॉग आउट न करें।',
+  'All synced. Last sync {time}.': 'सब सिंक हो गया। आखिरी सिंक {time}।',
+  'Nothing waiting to sync': 'सिंक के लिए कुछ बाकी नहीं',
+  'reason saved': 'कारण सहेजा गया',
+  'photo attached': 'फ़ोटो जुड़ी है',
+  'Back online. Syncing now.': 'फिर ऑनलाइन। अब सिंक हो रहा है।',
+  'Everything is synced.': 'सब कुछ सिंक है।',
+  'Reconnect and sync (demo)': 'फिर जुड़ें और सिंक करें (डेमो)',
+  'Sync now': 'अभी सिंक करें',
+  'Needs review': 'जाँच ज़रूरी',
+  'The devotee was flagged while you were offline. Points stay pending until an admin resolves the alert.':
+    'आपके ऑफ़लाइन रहते भक्त चिह्नित हुए। एडमिन के अलर्ट सुलझाने तक अंक बाकी रहेंगे।',
+  'Auto sync runs when the connection returns. Each queued item keeps its original time.':
+    'कनेक्शन लौटने पर सिंक अपने आप होता है। हर जमा का मूल समय बना रहता है।',
+  'Charge ₹{charge} per kg': '₹{charge} प्रति किलो शुल्क',
+  '{points} pts per kg': '{points} अंक प्रति किलो',
+  Other: 'अन्य',
+  'Eligible list only': 'केवल स्वीकृत सूची',
+  'Next: weight': 'आगे: वज़न',
+  'Eligible types are set by the admin. Broken idols need the INR charge collected. Items that are not eligible are rejected.':
+    'स्वीकृत प्रकार एडमिन तय करते हैं। खंडित मूर्तियों पर INR शुल्क लिया जाता है। अस्वीकृत वस्तुएँ लौटा दी जाती हैं।',
+  'Other items': 'अन्य वस्तुएँ',
+  'Only these types are accepted:': 'केवल ये प्रकार स्वीकार होते हैं:',
+  'Plastic bags, synthetic thread, foil and food waste are not accepted. Weigh and photograph the item, then reject it.':
+    'प्लास्टिक की थैली, सिंथेटिक धागा, पन्नी और खाने का कचरा स्वीकार नहीं है। वस्तु तौलें, फ़ोटो लें, फिर अस्वीकार करें।',
+  'Continue to reject as not eligible': 'अस्वीकृत प्रकार के रूप में आगे बढ़ें',
+  'Collect INR charge': 'INR शुल्क लें',
+  'Broken idols are accepted for a charge of ₹{charge} per kg. Tell the devotee before weighing.':
+    'खंडित मूर्तियाँ ₹{charge} प्रति किलो शुल्क पर ली जाती हैं। तौलने से पहले भक्त को बताएँ।',
+  'The total is shown after weighing. Confirm payment on the review screen.':
+    'कुल राशि तौलने के बाद दिखेगी। जाँच स्क्रीन पर भुगतान की पुष्टि करें।',
+  'Devotee agrees, continue': 'भक्त सहमत हैं, आगे बढ़ें',
+  Garlands: 'मालाएँ',
+  'Plastic or foreign material': 'प्लास्टिक या बाहरी सामग्री',
+  'Mixed with food waste': 'खाने के कचरे के साथ मिला',
+  'Not an eligible type': 'स्वीकृत प्रकार नहीं',
+  'Sync conflict': 'सिंक में टकराव',
+  'Submitted again': 'फिर से जमा किया गया',
+
+  // Devotee notices
+  'Your sacred offering of {kg} kg has been received for nature’s service. Points: +{points}.':
+    'आपका {kg} किलो का पवित्र अर्पण प्रकृति की सेवा के लिए प्राप्त हुआ। अंक: +{points}।',
+  'Your offering of {kg} kg was received. {points} points are held for a quick review.':
+    'आपका {kg} किलो का अर्पण प्राप्त हुआ। एक छोटी जाँच के लिए {points} अंक रोके गए हैं।',
+  'Your offering of {kg} kg at {temple} was returned. Reason: {reason}.':
+    '{temple} पर आपका {kg} किलो का अर्पण लौटाया गया। कारण: {reason}।',
+  Dismiss: 'हटाएँ',
+
+  // Temple admin
+  'Enter the temple name.': 'मंदिर का नाम दर्ज करें।',
+  'Enter the registration number.': 'पंजीकरण संख्या दर्ज करें।',
+  'Enter the address.': 'पता दर्ज करें।',
+  'Enter the contact person.': 'संपर्क व्यक्ति दर्ज करें।',
+  'Please confirm you are authorised.': 'कृपया पुष्टि करें कि आप अधिकृत हैं।',
+  'Temple type': 'मंदिर का प्रकार',
+  'Trust or society': 'ट्रस्ट या सोसाइटी',
+  'Community run': 'समुदाय द्वारा संचालित',
+  'Registration number': 'पंजीकरण संख्या',
+  'Pinned on map': 'नक्शे पर चिह्नित',
+  'Pin on map (optional)': 'नक्शे पर चिह्नित करें (वैकल्पिक)',
+  'I am authorised to register this temple and accept the collection terms.':
+    'मैं इस मंदिर को पंजीकृत करने के लिए अधिकृत हूँ और संग्रह के नियम स्वीकार करता या करती हूँ।',
+  'Save and add documents': 'सहेजें और दस्तावेज़ जोड़ें',
+  'The contact person logs in with OTP and becomes the temple admin.':
+    'संपर्क व्यक्ति OTP से लॉग इन करके मंदिर एडमिन बनते हैं।',
+  Details: 'विवरण',
+  Documents: 'दस्तावेज़',
+  Verification: 'सत्यापन',
+  'Sent for verification.': 'सत्यापन के लिए भेजा गया।',
+  'Profile and documents': 'प्रोफ़ाइल और दस्तावेज़',
+  'Logo or photo': 'लोगो या फ़ोटो',
+  'Deity or tradition': 'देवता या परंपरा',
+  'KYC documents (manual review)': 'KYC दस्तावेज़ (हाथ से जाँच)',
+  Added: 'जोड़ा गया',
+  Required: 'ज़रूरी',
+  'Upload PDF or photo': 'PDF या फ़ोटो अपलोड करें',
+  'Add every required document.': 'हर ज़रूरी दस्तावेज़ जोड़ें।',
+  'Submit for verification': 'सत्यापन के लिए भेजें',
+  'Only the documents for your temple type are shown. Files are stored encrypted.':
+    'केवल आपके मंदिर के प्रकार के दस्तावेज़ दिखाए गए हैं। फ़ाइलें सुरक्षित रूप से रखी जाती हैं।',
+  'Temple admin login': 'मंदिर एडमिन लॉगिन',
+  'Demo: use {mobile} with OTP 123456. The contact person of a temple signs in here.':
+    'डेमो: {mobile} और OTP 123456 उपयोग करें। मंदिर के संपर्क व्यक्ति यहाँ साइन इन करते हैं।',
+  'Verified temple': 'सत्यापित मंदिर',
+  'Changes needed': 'बदलाव चाहिए',
+  'Verification in review': 'सत्यापन जाँच में',
+  'Submitted {date} · usually 2 to 3 working days':
+    '{date} को जमा किया गया · सामान्यतः 2 से 3 कार्य दिवस',
+  'What the admin asked for': 'एडमिन ने क्या माँगा',
+  'Edit details': 'विवरण बदलें',
+  'Details submitted': 'विवरण जमा हुआ',
+  'Documents uploaded': 'दस्तावेज़ अपलोड हुए',
+  'Admin review': 'एडमिन की जाँच',
+  'Verified and badge issued': 'सत्यापित और बैज जारी',
+  'Deposits today': 'आज के जमा',
+  'Collected today': 'आज का संग्रह',
+  'Temple profile': 'मंदिर प्रोफ़ाइल',
+  'Counter timings': 'काउंटर का समय',
+  'Counter timings saved.': 'काउंटर का समय सहेजा गया।',
+  'Save timings': 'समय सहेजें',
+  'Verified temples appear in the temple list for devotees and as pickup points at checkout.':
+    'सत्यापित मंदिर भक्तों की मंदिर सूची में और चेकआउट पर पिकअप स्थान के रूप में दिखते हैं।',
+
+  // Information pages
+  'We collect your mobile number, name, date of birth, area and KYC documents to run your account.':
+    'आपका खाता चलाने के लिए हम आपका मोबाइल नंबर, नाम, जन्म तिथि, क्षेत्र और KYC दस्तावेज़ लेते हैं।',
+  'Mobile numbers and KYC data are stored encrypted. Operators and temple staff only see masked numbers.':
+    'मोबाइल नंबर और KYC डेटा सुरक्षित रूप से रखे जाते हैं। ऑपरेटर और मंदिर कर्मचारी केवल छिपे नंबर देखते हैं।',
+  'Each consent you give is logged with the time and version. You can view or withdraw it from your profile.':
+    'आपकी हर सहमति समय और संस्करण के साथ दर्ज होती है। आप इसे प्रोफ़ाइल से देख या वापस ले सकते हैं।',
+  'Deposit photos are kept as proof of purity with the time, operator and deposit ID.':
+    'जमा की फ़ोटो समय, ऑपरेटर और जमा ID के साथ शुद्धता के प्रमाण के रूप में रखी जाती हैं।',
+  'Data exports are limited to admins and every export is written to the audit log.':
+    'डेटा निर्यात केवल एडमिन कर सकते हैं और हर निर्यात ऑडिट लॉग में दर्ज होता है।',
+  'Accounts are for adults 18 and above.': 'खाते 18 वर्ष और उससे अधिक आयु के लिए हैं।',
+  'Every 100 g of eligible nirmalya earns 10 points. Rules can change for new deposits only.':
+    'स्वीकृत निर्माल्य के हर 100 ग्राम पर 10 अंक मिलते हैं। नियम केवल नए जमा के लिए बदल सकते हैं।',
+  'Levels follow lifetime points. Using points never lowers your level.':
+    'स्तर कुल अंकों पर चलते हैं। अंक उपयोग करने से स्तर कभी नहीं घटता।',
+  'Points can be used only after your KYC is verified. Held points cannot be used until an admin reviews them.':
+    'अंक केवल KYC सत्यापन के बाद उपयोग होते हैं। रोके गए अंक एडमिन की जाँच तक उपयोग नहीं हो सकते।',
+  'Offerings with plastic, foil, thread or food waste are returned without points.':
+    'प्लास्टिक, पन्नी, धागा या खाने के कचरे वाला अर्पण बिना अंकों के लौटाया जाता है।',
+  'Checkout in Phase 1 is a mock payment. No real money is charged.':
+    'चरण 1 में चेकआउट नकली भुगतान है। कोई असली पैसा नहीं लिया जाता।',
+  'No plastic, metal or cloth': 'प्लास्टिक, धातु या कपड़ा नहीं',
+  'No food or mixed waste': 'खाना या मिला हुआ कचरा नहीं',
+  'Photo is clear and well lit': 'फ़ोटो साफ़ और रोशनी में है',
+  // Deposit history
+  'Deposit history': 'जमा इतिहास',
+  'Download CSV': 'CSV डाउनलोड करें',
+  'No deposits yet': 'अभी तक कोई जमा नहीं',
+  'Every counter deposit across collection points. Downloads are masked and written to the audit log.': 'सभी संग्रह केंद्रों की हर काउंटर जमा। डाउनलोड में नंबर छिपे रहते हैं और ऑडिट लॉग में दर्ज होते हैं।',
+  'Search name, mobile or ID': 'नाम, मोबाइल या ID से खोजें',
+  '1 deposit': '1 जमा',
+  'All collection points': 'सभी संग्रह केंद्र',
+  'Period': 'अवधि',
+  'Last 7 days': 'पिछले 7 दिन',
+  'Accepted weight': 'स्वीकृत वज़न',
+  'Points given': 'दिए गए अंक',
+  'No deposits match these filters': 'इन फ़िल्टर से कोई जमा नहीं मिली',
+  'Show more ({count} left)': 'और दिखाएं ({count} बाकी)',
+  'Deposit {id}': 'जमा {id}',
+  'Date and time': 'तारीख और समय',
+  'Charge': 'शुल्क',
+  'Note': 'टिप्पणी',
+  'Sync': 'सिंक',
+  'Synced, sent for review': 'सिंक हुआ, समीक्षा के लिए भेजा गया',
+  'Synced': 'सिंक हुआ',
+  'Waiting to sync': 'सिंक की प्रतीक्षा में',
+  'See all history': 'पूरा इतिहास देखें',
+  'No deposits at this collection point yet': 'इस संग्रह केंद्र पर अभी तक कोई जमा नहीं',
+  'Points entry': 'अंक विवरण',
+  'View order': 'ऑर्डर देखें',
+  'Date': 'तारीख',
+  'Deposit': 'जमा',
+  'Held points are released or removed after admin review.': 'रोके गए अंक एडमिन की जांच के बाद जारी या हटाए जाते हैं।',
+  'Rejected deposits earn no points. The counter will tell you why.': 'अस्वीकृत जमा पर अंक नहीं मिलते। काउंटर पर कारण बताया जाएगा।',
+  'No deposits yet. They appear here once the counter starts collecting.': 'अभी तक कोई जमा नहीं। काउंटर पर संग्रह शुरू होते ही यहां दिखेंगी।',
+  'Devotee mobile numbers are masked for temple admins.': 'मंदिर एडमिन के लिए भक्तों के मोबाइल नंबर छिपे रहते हैं।',
+  'Bonus': 'बोनस',
+  'Refund': 'वापसी',
+  'Released': 'जारी किए गए',
+  'Removed': 'हटाए गए',
 }

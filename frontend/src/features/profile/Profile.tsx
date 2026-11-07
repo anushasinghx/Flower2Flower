@@ -16,7 +16,7 @@ import {
   TextSizePicker,
 } from '../onboarding/Welcome'
 import { useStore, useT } from '../../store/appStore'
-import { logout, resetDemo, saveProfile, setConsent } from '../../store/actions'
+import { resetDemo, saveProfile, setConsent } from '../../store/actions'
 import { levelInfo, maskMobile } from '../../utils/points'
 
 const rowClass =
@@ -146,8 +146,8 @@ const Profile = () => {
             full
             icon="logout"
             onClick={() => {
-              run(logout)
-              navigate('/welcome')
+              navigate('/logout')
+              toast(t('You are logged out.'))
             }}
           >
             {t('Log out')}

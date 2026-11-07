@@ -20,7 +20,7 @@ import { submitKyc } from '../../store/actions'
 
 const docTypes = ['Aadhaar', 'Voter ID', 'Driving licence']
 
-const UploadTile = ({
+export const UploadTile = ({
   label,
   fileName,
   onPick,

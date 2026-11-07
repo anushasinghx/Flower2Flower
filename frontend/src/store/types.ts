@@ -18,7 +18,7 @@ export type OrderStatus =
   | 'ready'
   | 'completed'
   | 'cancelled'
-export type TempleStatus = 'pending' | 'verified' | 'needsChanges'
+export type TempleStatus = 'draft' | 'pending' | 'verified' | 'needsChanges'
 export type TempleType = 'registered' | 'unregistered'
 export type BatchStatus =
   | 'created'
@@ -60,6 +60,7 @@ export type LedgerEntry = {
   detail: string
   kind: LedgerKind
   points: number
+  depositId?: string
 }
 
 export type Society = {
@@ -140,6 +141,10 @@ export type Temple = {
   badge: string
   note: string
   history: string[]
+  regNo?: string
+  deity?: string
+  docs?: string[]
+  submitted?: string
 }
 
 export type EarningRule = {
@@ -225,7 +230,63 @@ export type ExportEntry = {
   masked: boolean
 }
 
-export type Session = 'devotee' | 'admin' | null
+export type Session = 'devotee' | 'admin' | 'operator' | 'templeAdmin' | null
+
+export type DevoteeSummary = {
+  mobile: string
+  name: string
+  level: number
+  kyc: KycStatus
+  societyId: string | null
+  flagged: boolean
+  assistedBy?: string
+}
+
+export type DepositStatus = 'accepted' | 'held' | 'rejected'
+
+export type Deposit = {
+  id: string
+  at: string
+  mobile: string
+  name: string
+  templeId: string
+  waste: string
+  kg: number
+  points: number
+  charge: number
+  status: DepositStatus
+  reason: string
+  note: string
+  synced: boolean
+  conflict: boolean
+}
+
+export type DepositDraft = {
+  mobile: string
+  waste: string
+  kg: number
+  photo: string
+  checks: string[]
+  chargeCollected: boolean
+}
+
+export type ClosedCollection = {
+  id: string
+  source: string
+  date: string
+  kg: number
+  used: boolean
+}
+
+export type Notice = {
+  id: string
+  kind: DepositStatus
+  kg: number
+  waste: string
+  points: number
+  temple: string
+  reason: string
+}
 
 export type AppState = {
   lang: Lang
@@ -250,4 +311,16 @@ export type AppState = {
   staff: Staff[]
   audit: AuditEntry[]
   exports: ExportEntry[]
+  devotees: DevoteeSummary[]
+  deposits: Deposit[]
+  closedCollections: ClosedCollection[]
+  notices: Notice[]
+  operator: {
+    templeId: string
+    offline: boolean
+    lastSync: string
+    draft: DepositDraft | null
+    lastDepositId: string
+  }
+  templeAdmin: { templeId: string | null }
 }

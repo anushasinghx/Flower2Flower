@@ -15,7 +15,9 @@ import { setMobile } from '../../store/actions'
 import {
   DEMO_ADMIN_MOBILE,
   DEMO_DEVOTEE_MOBILE,
+  DEMO_OPERATOR_MOBILE,
   DEMO_OTP,
+  DEMO_TEMPLE_MOBILE,
 } from '../../services/mockData'
 
 const MobileNumber = () => {
@@ -96,10 +98,12 @@ const MobileNumber = () => {
 
       <InfoNote>
         {t(
-          'Demo login: {devotee} opens Sunita, {admin} opens the Admin console, any other number starts a new signup. OTP is {otp}.',
+          'Demo login: {devotee} opens Sunita, {admin} opens the Admin console, {operator} opens the temple counter, {temple} opens temple registration, and any other number starts a new signup. OTP is {otp}.',
           {
             devotee: DEMO_DEVOTEE_MOBILE,
             admin: DEMO_ADMIN_MOBILE,
+            operator: DEMO_OPERATOR_MOBILE,
+            temple: DEMO_TEMPLE_MOBILE,
             otp: DEMO_OTP,
           },
         )}

@@ -13,7 +13,6 @@ import {
 import { useStore, useT } from '../../store/appStore'
 import { createBatch } from '../../store/actions'
 import type { Batch, BatchStatus } from '../../store/types'
-import { closedCollections } from '../../services/mockData'
 import { batchInputKg, batchStages } from './batchStages'
 
 export const BatchStatusPill = ({ status }: { status: BatchStatus }) => {
@@ -45,6 +44,9 @@ const Batches = () => {
   const rows = state.batches.filter(
     (batch) => tab === 'all' || batch.status === tab,
   )
+  const closedCollections = state.closedCollections.filter(
+    (item) => !item.used,
+  )
   const pickedRows = closedCollections.filter((item) =>
     picked.includes(item.id),
   )
@@ -75,7 +77,7 @@ const Batches = () => {
       })
     }
 
-    run((current) => createBatch(current, { inputs }))
+    run((current) => createBatch(current, { inputs }, picked))
     resetForm()
     setTab('all')
     toast(t('Batch created.'))
@@ -162,6 +164,11 @@ const Batches = () => {
             <legend className="mb-1 font-semibold">
               {t('Source collections')}
             </legend>
+            {closedCollections.length === 0 && (
+              <p className="text-sm text-muted">
+                {t('No closed collection days yet. Operators close a day from their daily summary.')}
+              </p>
+            )}
             {closedCollections.map((item) => (
               <CheckRow
                 key={item.id}

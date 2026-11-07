@@ -33,12 +33,17 @@ const LedgerAmount = ({ entry }: { entry: LedgerEntry }) => {
   )
 }
 
-const LedgerRow = ({ entry }: { entry: LedgerEntry }) => {
+const LedgerRow = ({
+  entry,
+  onSelect,
+}: {
+  entry: LedgerEntry
+  onSelect?: (entry: LedgerEntry) => void
+}) => {
   const t = useT()
   const title = entry.title.replace('Order #', `${t('Order')} #`)
-
-  return (
-    <li className="flex items-start justify-between gap-4 border-b border-line py-3 last:border-b-0">
+  const body = (
+    <>
       <div className="min-w-0">
         <p className="text-lg leading-snug">
           {t(entry.when)} · {t(title)}
@@ -46,8 +51,29 @@ const LedgerRow = ({ entry }: { entry: LedgerEntry }) => {
         <p className="text-muted">{t(entry.detail)}</p>
       </div>
       <LedgerAmount entry={entry} />
+    </>
+  )
+
+  if (onSelect) {
+    return (
+      <li className="border-b border-line last:border-b-0">
+        <button
+          type="button"
+          onClick={() => onSelect(entry)}
+          className="-mx-2 flex w-[calc(100%+1rem)] items-start justify-between gap-4 rounded-2xl px-2 py-3 text-left hover:bg-surface"
+        >
+          {body}
+        </button>
+      </li>
+    )
+  }
+
+  return (
+    <li className="flex items-start justify-between gap-4 border-b border-line py-3 last:border-b-0">
+      {body}
     </li>
   )
 }
 
+export { LedgerAmount }
 export default LedgerRow

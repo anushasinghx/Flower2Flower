@@ -13,6 +13,8 @@ import {
 } from '../../components/ui/kit'
 import LedgerRow from './LedgerRow'
 import { useStore, useT } from '../../store/appStore'
+import { dismissNotice } from '../../store/fieldActions'
+import type { Notice } from '../../store/types'
 import {
   availablePoints,
   formatNumber,
@@ -69,6 +71,50 @@ const QrPlaceholder = ({ seed }: { seed: string }) => {
   )
 }
 
+const NoticeCard = ({ notice }: { notice: Notice }) => {
+  const { run } = useStore()
+  const t = useT()
+  const text =
+    notice.kind === 'accepted'
+      ? t('Your sacred offering of {kg} kg has been received for nature’s service. Points: +{points}.', {
+          kg: notice.kg,
+          points: formatNumber(notice.points),
+        })
+      : notice.kind === 'held'
+        ? t('Your offering of {kg} kg was received. {points} points are held for a quick review.', {
+            kg: notice.kg,
+            points: formatNumber(notice.points),
+          })
+        : t('Your offering of {kg} kg at {temple} was returned. Reason: {reason}.', {
+            kg: notice.kg,
+            temple: notice.temple,
+            reason: t(notice.reason),
+          })
+
+  return (
+    <div
+      role="status"
+      className={`flex items-start gap-3 rounded-2xl border p-4 ${
+        notice.kind === 'rejected' ? 'border-sindoor/50' : 'border-tulsi/40'
+      }`}
+    >
+      <Icon
+        name={notice.kind === 'rejected' ? 'flag' : 'leaf'}
+        className={notice.kind === 'rejected' ? 'text-sindoor' : 'text-tulsi'}
+      />
+      <p className="min-w-0 flex-1">{text}</p>
+      <button
+        type="button"
+        aria-label={t('Dismiss')}
+        onClick={() => run((current) => dismissNotice(current, notice.id))}
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted hover:text-ink"
+      >
+        <Icon name="close" size={18} />
+      </button>
+    </div>
+  )
+}
+
 const Home = () => {
   const { state } = useStore()
   const t = useT()
@@ -103,6 +149,8 @@ const Home = () => {
           </Pill>
         )}
       </div>
+
+      {state.notices[0] && <NoticeCard notice={state.notices[0]} />}
 
       {!verified && (
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-sindoor/50 px-4 py-3">

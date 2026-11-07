@@ -16,6 +16,8 @@ import type {
 import {
   DEMO_ADMIN_MOBILE,
   DEMO_DEVOTEE_MOBILE,
+  DEMO_OPERATOR_MOBILE,
+  DEMO_TEMPLE_MOBILE,
   initialState,
 } from '../services/mockData'
 import { cartTotals, nowLabel, todayLabel } from '../utils/points'
@@ -55,12 +57,26 @@ export const setMobile = (state: AppState, mobile: string): AppState => ({
 })
 
 export const isReturningMobile = (mobile: string) =>
-  mobile === DEMO_DEVOTEE_MOBILE || mobile === DEMO_ADMIN_MOBILE
+  [
+    DEMO_DEVOTEE_MOBILE,
+    DEMO_ADMIN_MOBILE,
+    DEMO_OPERATOR_MOBILE,
+    DEMO_TEMPLE_MOBILE,
+  ].includes(mobile)
+
+export const homeFor = (mobile: string, returning: boolean) => {
+  if (mobile === DEMO_ADMIN_MOBILE) return '/admin'
+  if (mobile === DEMO_OPERATOR_MOBILE) return '/operator'
+  if (mobile === DEMO_TEMPLE_MOBILE) return '/temple'
+  return returning ? '/app' : '/onboarding/profile'
+}
 
 export const completeLogin = (state: AppState): AppState => {
   const mobile = state.pendingMobile
 
   if (mobile === DEMO_ADMIN_MOBILE) return { ...state, session: 'admin' }
+  if (mobile === DEMO_OPERATOR_MOBILE) return { ...state, session: 'operator' }
+  if (mobile === DEMO_TEMPLE_MOBILE) return { ...state, session: 'templeAdmin' }
   if (mobile === DEMO_DEVOTEE_MOBILE || mobile === state.devotee.mobile) {
     return { ...state, session: 'devotee' }
   }
@@ -486,6 +502,7 @@ export const resolveAlert = (
 export const createBatch = (
   state: AppState,
   batch: Pick<Batch, 'inputs'>,
+  collectionIds: string[] = [],
 ): AppState => {
   const highest = Math.max(
     ...state.batches.map((item) => Number(item.id.slice(1))),
@@ -495,6 +512,9 @@ export const createBatch = (
   return withAudit(
     {
       ...state,
+      closedCollections: state.closedCollections.map((item) =>
+        collectionIds.includes(item.id) ? { ...item, used: true } : item,
+      ),
       batches: [
         {
           id,

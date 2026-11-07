@@ -4,6 +4,7 @@ import { LogoLockup, LogoMark } from '../Brand/Logo'
 import Icon from '../ui/Icon'
 import { Button, Field, Sheet, TextArea, TextInput } from '../ui/kit'
 import LangSwitch from './LangSwitch'
+import LogoutButton from './LogoutButton'
 import { useStore, useT } from '../../store/appStore'
 import { devoteeNav } from './devoteeNav'
 
@@ -26,7 +27,7 @@ const TopBar = ({ showNav = false }: { showNav?: boolean }) => {
     <header className="sticky top-0 z-40 border-b border-line bg-night">
       <div className="mx-auto flex min-h-14 w-full max-w-6xl items-center justify-between gap-3 px-4 py-2 md:min-h-16 md:px-8">
         <div className="flex min-w-0 items-center gap-8">
-          <Link to={showNav ? '/app' : '/welcome'} aria-label="Flower2Flower">
+          <Link to={showNav ? '/app' : '/'} aria-label="Flower2Flower">
             <span className="sm:hidden">
               <LogoMark size={34} />
             </span>
@@ -80,6 +81,7 @@ const TopBar = ({ showNav = false }: { showNav?: boolean }) => {
               )}
             </Link>
           )}
+          {showNav && <LogoutButton />}
         </div>
       </div>
 
