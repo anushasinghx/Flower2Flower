@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using backend.Data;
 using backend.Services;
@@ -27,7 +28,7 @@ if (string.IsNullOrWhiteSpace(connectionString))
     throw new InvalidOperationException("Missing PostgreSQL connection string. Set ConnectionStrings__Postgres or POSTGRESQL_CONNECTION_STRING.");
 }
 
-var jwtSigningKey = builder.Configuration["Jwt:SigningKey"] ?? builder.Configuration["JWT_SIGNING_KEY"];
+var jwtSigningKey = builder.Configuration["JWT_SIGNING_KEY"] ?? builder.Configuration["Jwt:SigningKey"];
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? builder.Configuration["JWT_ISSUER"] ?? "Flower2Flower";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? builder.Configuration["JWT_AUDIENCE"] ?? "Flower2Flower-Frontend";
 var allowedFrontendOrigins = builder.Configuration["AllowedFrontendOrigins"] ?? builder.Configuration["ALLOWED_FRONTEND_ORIGINS"] ?? "http://localhost:3000,https://localhost:3000";
@@ -49,17 +50,25 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connect
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
     });
 builder.Services.AddHttpClient("fast2sms");
 builder.Services.AddScoped<Fast2SmsOtpService>();
 builder.Services.AddSingleton<JwtService>();
+builder.Services.AddSingleton<FileStorageService>();
+builder.Services.AddScoped<RulesService>();
+builder.Services.AddScoped<PointsService>();
+builder.Services.AddScoped<AuditService>();
+builder.Services.AddScoped<DepositService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        options.MapInboundClaims = false;
         options.TokenValidationParameters = new TokenValidationParameters
         {
+            RoleClaimType = "role",
+            NameClaimType = "user_id",
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSigningKey ?? "flower2flower-development-signing-key-1234567890")),
             ValidateIssuer = true,
@@ -122,6 +131,7 @@ using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     dbContext.Database.Migrate();
+    await DataSeeder.SeedAsync(dbContext, app.Configuration);
 }
 
 if (app.Environment.IsDevelopment())

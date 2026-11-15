@@ -8,16 +8,27 @@ public sealed class Fast2SmsOtpService
 {
     private readonly IHttpClientFactory _clientFactory;
     private readonly IConfiguration _configuration;
-    private readonly ConcurrentDictionary<string, DateTime> _lastOtpRequestAt = new();
-    private readonly ConcurrentDictionary<string, int> _otpRequestCount = new();
+    private readonly IHostEnvironment _environment;
+    private static readonly ConcurrentDictionary<string, DateTime> _lastOtpRequestAt = new();
+    private static readonly ConcurrentDictionary<string, int> _otpRequestCount = new();
     private static readonly TimeSpan AllowedWindow = TimeSpan.FromMinutes(10);
     private static readonly int MaxRequestsPerWindow = 5;
     private static readonly TimeSpan CooldownWindow = TimeSpan.FromSeconds(30);
 
-    public Fast2SmsOtpService(IHttpClientFactory clientFactory, IConfiguration configuration)
+    public Fast2SmsOtpService(IHttpClientFactory clientFactory, IConfiguration configuration, IHostEnvironment environment)
     {
         _clientFactory = clientFactory;
         _configuration = configuration;
+        _environment = environment;
+    }
+
+    private string? DevelopmentCode
+    {
+        get
+        {
+            var code = _configuration["Otp:DevCode"] ?? _configuration["OTP_DEV_CODE"];
+            return _environment.IsDevelopment() && !string.IsNullOrWhiteSpace(code) ? code.Trim() : null;
+        }
     }
 
     public string NormalizeMobileNumber(string mobile)
@@ -36,7 +47,11 @@ public sealed class Fast2SmsOtpService
     {
         var normalized = NormalizeMobileNumber(mobile);
         var now = DateTime.UtcNow;
-        var lastRequest = _lastOtpRequestAt.GetOrAdd(normalized, now);
+        if (!_lastOtpRequestAt.TryGetValue(normalized, out var lastRequest))
+        {
+            return true;
+        }
+
         if ((now - lastRequest) < CooldownWindow)
         {
             return false;
@@ -62,6 +77,11 @@ public sealed class Fast2SmsOtpService
         if (!IsIndianMobileNumber(normalized))
         {
             return OtpResult.Failure("Invalid mobile number.");
+        }
+
+        if (DevelopmentCode is not null)
+        {
+            return OtpResult.Success();
         }
 
         var apiKey = _configuration["Fast2Sms:ApiKey"] ?? _configuration["FAST2SMS_API_KEY"];
@@ -133,6 +153,11 @@ public sealed class Fast2SmsOtpService
         if (!IsIndianMobileNumber(normalized) || string.IsNullOrWhiteSpace(otp))
         {
             return OtpResult.Failure("Invalid OTP request.");
+        }
+
+        if (DevelopmentCode is not null)
+        {
+            return otp.Trim() == DevelopmentCode ? OtpResult.Success() : OtpResult.Failure("Invalid or expired OTP.");
         }
 
         var apiKey = _configuration["Fast2Sms:ApiKey"] ?? _configuration["FAST2SMS_API_KEY"];

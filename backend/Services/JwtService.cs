@@ -27,7 +27,8 @@ public sealed class JwtService
         {
             new Claim("user_id", user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new Claim(JwtRegisteredClaimNames.UniqueName, user.MobileNumber)
+            new Claim(JwtRegisteredClaimNames.UniqueName, user.MobileNumber),
+            new Claim("role", user.UserType.ToString())
         };
 
         var token = new JwtSecurityToken(
@@ -69,9 +70,50 @@ public sealed class JwtService
         }
     }
 
+    public (string Token, DateTime ExpiresAtUtc) CreateQrToken(User user)
+    {
+        var issuer = _configuration["Jwt:Issuer"] ?? _configuration["JWT_ISSUER"] ?? "Flower2Flower";
+        var expiresAt = DateTime.UtcNow.AddHours(24);
+        var token = new JwtSecurityToken(
+            issuer: issuer,
+            audience: QrAudience,
+            claims: new[] { new Claim("user_id", user.Id.ToString()) },
+            expires: expiresAt,
+            signingCredentials: new SigningCredentials(GetSigningKey(), SecurityAlgorithms.HmacSha256));
+
+        return (new JwtSecurityTokenHandler().WriteToken(token), expiresAt);
+    }
+
+    public Guid? ReadQrToken(string token)
+    {
+        var issuer = _configuration["Jwt:Issuer"] ?? _configuration["JWT_ISSUER"] ?? "Flower2Flower";
+        try
+        {
+            var principal = new JwtSecurityTokenHandler().ValidateToken(token, new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = GetSigningKey(),
+                ValidateIssuer = true,
+                ValidIssuer = issuer,
+                ValidateAudience = true,
+                ValidAudience = QrAudience,
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.FromMinutes(1)
+            }, out _);
+
+            return Guid.TryParse(principal.FindFirst("user_id")?.Value, out var userId) ? userId : null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private const string QrAudience = "Flower2Flower-Counter-QR";
+
     private SymmetricSecurityKey GetSigningKey()
     {
-        var key = _configuration["Jwt:SigningKey"] ?? _configuration["JWT_SIGNING_KEY"] ?? "flower2flower-development-signing-key-123";
+        var key = _configuration["JWT_SIGNING_KEY"] ?? _configuration["Jwt:SigningKey"] ?? "flower2flower-development-signing-key-1234567890";
         return new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
     }
 

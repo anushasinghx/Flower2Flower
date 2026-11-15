@@ -17,4 +17,11 @@ public sealed class User
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAtUtc { get; set; } = DateTime.UtcNow;
     public DateTime? LastLoginAtUtc { get; set; }
+    public KycStatus KycStatus { get; set; } = KycStatus.NotStarted;
+    public Guid? SocietyId { get; set; }
+    public Society? Society { get; set; }
+    public bool PoolOn { get; set; }
+    public AppLanguage Language { get; set; } = AppLanguage.En;
+    public TextSize TextSize { get; set; } = TextSize.Normal;
+    public Guid? AssistedByUserId { get; set; }
 }
