@@ -509,3 +509,10 @@ export const InfoNote = ({ children }: { children: ReactNode }) => (
     {children}
   </p>
 )
+
+export const Loading = ({ label }: { label: string }) => (
+  <div role="status" className="flex flex-col items-center gap-3 py-16 text-center text-muted">
+    <span className="h-9 w-9 animate-spin rounded-full border-2 border-line border-t-marigold" />
+    <span>{label}</span>
+  </div>
+)

@@ -2,13 +2,16 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, Outlet, useLocation } from 'react-router-dom'
 import { LogoLockup, LogoMark } from '../Brand/Logo'
 import Icon from '../ui/Icon'
+import { Loading } from '../ui/kit'
 import LangSwitch from './LangSwitch'
 import LogoutButton from './LogoutButton'
 import { useStore, useT } from '../../store/appStore'
-import { setOffline, syncOne } from '../../store/fieldActions'
+import { markSynced, setOffline } from '../../store/fieldActions'
+import { operatorApi } from '../../store/remote'
+import { errorMessage } from '../../services/api'
 
 const OperatorShell = () => {
-  const { state, run, toast } = useStore()
+  const { state, run, toast, refresh } = useStore()
   const t = useT()
   const { pathname } = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
@@ -17,13 +20,45 @@ const OperatorShell = () => {
   const queued = state.deposits.filter((deposit) => !deposit.synced).length
   const signedIn = state.session === 'operator'
   const previousQueued = useRef(queued)
+  const syncing = useRef(false)
+  const nextItem = state.deposits
+    .filter((deposit) => !deposit.synced && deposit.pending && !deposit.syncError)
+    .sort((a, b) => a.at.localeCompare(b.at))[0]
 
-  // Auto sync runs when the connection returns, one deposit at a time.
   useEffect(() => {
-    if (offline || queued === 0) return
-    const timer = window.setTimeout(() => run(syncOne), 700)
+    if (!signedIn || offline || !nextItem?.pending || syncing.current) return
+    const item = nextItem
+    const pending = nextItem.pending
+    const timer = window.setTimeout(async () => {
+      syncing.current = true
+      try {
+        const result = await operatorApi.sync(pending)
+        if (result?.saved) {
+          run((current) => markSynced(current, item.id, result.code))
+          await refresh()
+        } else {
+          const problem = result?.error ?? 'Sync failed.'
+          run((current) => ({
+            ...current,
+            deposits: current.deposits.map((deposit) =>
+              deposit.id === item.id ? { ...deposit, syncError: problem } : deposit,
+            ),
+          }))
+        }
+      } catch (error) {
+        const problem = errorMessage(error)
+        run((current) => ({
+          ...current,
+          deposits: current.deposits.map((deposit) =>
+            deposit.id === item.id ? { ...deposit, syncError: problem } : deposit,
+          ),
+        }))
+      } finally {
+        syncing.current = false
+      }
+    }, 700)
     return () => window.clearTimeout(timer)
-  }, [offline, queued, run])
+  }, [signedIn, offline, nextItem, run, refresh])
 
   useEffect(() => {
     if (previousQueued.current > 0 && queued === 0 && !offline) {
@@ -129,7 +164,7 @@ const OperatorShell = () => {
       </header>
 
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 pb-12 pt-5 md:pt-8">
-        <Outlet />
+        {!signedIn || state.loaded ? <Outlet /> : <Loading label={t('Loading')} />}
       </main>
     </div>
   )

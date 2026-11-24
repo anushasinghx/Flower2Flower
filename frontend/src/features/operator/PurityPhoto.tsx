@@ -6,9 +6,10 @@ import { DepositSteps, NeedsDraft, PhotoPreview } from './common'
 import { formatKg, purityChecks, useDraft } from './helpers'
 import { useStore, useT } from '../../store/appStore'
 import { updateDraft } from '../../store/fieldActions'
+import { compressImage, errorMessage, samplePhoto } from '../../services/api'
 
 const PurityPhoto = () => {
-  const { run } = useStore()
+  const { run, toast } = useStore()
   const t = useT()
   const navigate = useNavigate()
   const { draft } = useDraft()
@@ -49,12 +50,15 @@ const PurityPhoto = () => {
           aria-label={t('Take photo')}
           onChange={(event) => {
             const file = event.target.files?.[0]
-            if (file) setPhoto(URL.createObjectURL(file))
+            if (!file) return
+            compressImage(file)
+              .then(setPhoto)
+              .catch((problem) => toast(t(errorMessage(problem))))
           }}
         />
       </label>
       {!draft.photo && (
-        <Button variant="ghost" onClick={() => setPhoto('sample')}>
+        <Button variant="ghost" onClick={() => setPhoto(samplePhoto(t('Sample photo')))}>
           {t('Use a sample photo (demo)')}
         </Button>
       )}

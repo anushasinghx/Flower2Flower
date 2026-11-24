@@ -117,6 +117,7 @@ export type Order = {
 
 export type KycRequest = {
   id: string
+  userId?: string
   name: string
   mobile: string
   docType: string
@@ -144,6 +145,8 @@ export type Temple = {
   regNo?: string
   deity?: string
   docs?: string[]
+  documents?: { docType: string; fileId: string }[]
+  photoFileId?: string | null
   submitted?: string
 }
 
@@ -213,6 +216,7 @@ export type Staff = {
 export type AuditEntry = {
   id: string
   time: string
+  at?: string
   actor: string
   role: string
   action: string
@@ -233,6 +237,7 @@ export type ExportEntry = {
 export type Session = 'devotee' | 'admin' | 'operator' | 'templeAdmin' | null
 
 export type DevoteeSummary = {
+  userId: string
   mobile: string
   name: string
   level: number
@@ -240,6 +245,8 @@ export type DevoteeSummary = {
   societyId: string | null
   flagged: boolean
   assistedBy?: string
+  rejectionsThisWeek?: number
+  rejectionLimit?: number
 }
 
 export type DepositStatus = 'accepted' | 'held' | 'rejected'
@@ -259,9 +266,29 @@ export type Deposit = {
   note: string
   synced: boolean
   conflict: boolean
+  devoteeUserId?: string
+  pending?: PendingDeposit
+  syncError?: string
+}
+
+export type PendingDeposit = {
+  clientId: string
+  devoteeUserId: string
+  templeId: string
+  waste: string
+  kg: number
+  photo: string
+  checks: string[]
+  chargeCollected: boolean
+  rejected: boolean
+  reason: string
+  note: string
+  capturedAtUtc: string
 }
 
 export type DepositDraft = {
+  devoteeUserId: string
+  name: string
   mobile: string
   waste: string
   kg: number
@@ -288,10 +315,28 @@ export type Notice = {
   reason: string
 }
 
+export type SessionUser = {
+  userId: string
+  name: string
+  mobile: string
+  userType: string
+}
+
+export type PublicStats = {
+  kgOffered: number
+  co2AvoidedKg: number
+  manureKg: number
+  devotees: number
+  verifiedTemples: number
+}
+
 export type AppState = {
   lang: Lang
   textSize: TextSize
   session: Session
+  user: SessionUser | null
+  loaded: boolean
+  publicStats: PublicStats
   pendingMobile: string
   devotee: Devotee
   ledger: LedgerEntry[]

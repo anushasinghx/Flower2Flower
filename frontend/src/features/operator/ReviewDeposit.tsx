@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ScreenHeader from '../../components/Layout/ScreenHeader'
 import {
@@ -13,12 +13,14 @@ import { DepositSteps, NeedsDraft, PhotoPreview } from './common'
 import { formatKg, purityChecks, useDraft } from './helpers'
 import { useStore, useT } from '../../store/appStore'
 import {
-  commitDeposit,
   depositQuote,
-  nextDepositId,
-  rejectionsThisWeek,
+  pendingFromDraft,
+  queueDeposit,
+  savedDeposit,
   updateDraft,
 } from '../../store/fieldActions'
+import { operatorApi, type DepositQuote } from '../../store/remote'
+import { errorMessage } from '../../services/api'
 import { formatNumber, maskMobile } from '../../utils/points'
 
 const reasons = [
@@ -28,7 +30,7 @@ const reasons = [
 ]
 
 const ReviewDeposit = () => {
-  const { state, run } = useStore()
+  const { state, run, refresh } = useStore()
   const t = useT()
   const navigate = useNavigate()
   const { draft } = useDraft()
@@ -38,6 +40,28 @@ const ReviewDeposit = () => {
   const [note, setNote] = useState('')
   const [error, setError] = useState('')
   const [saved, setSaved] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [remote, setRemote] = useState<DepositQuote | null>(null)
+  const offline = state.operator.offline
+  const devoteeUserId = draft?.devoteeUserId ?? ''
+  const waste = draft?.waste ?? ''
+  const kg = draft?.kg ?? 0
+
+  useEffect(() => {
+    if (offline || !devoteeUserId || !waste || !(kg > 0) || waste === 'Other') return
+    let alive = true
+    operatorApi
+      .quote(devoteeUserId, waste, kg)
+      .then((value) => {
+        if (alive) setRemote(value)
+      })
+      .catch(() => {
+        if (alive) setRemote(null)
+      })
+    return () => {
+      alive = false
+    }
+  }, [offline, devoteeUserId, waste, kg])
 
   // Saving clears the draft, so stop here instead of bouncing to Find devotee.
   if (saved) return null
@@ -46,29 +70,53 @@ const ReviewDeposit = () => {
     return <NeedsDraftStep path={draft.kg > 0 ? '/operator/photo' : '/operator/weight'} />
   }
 
-  const quote = depositQuote(state, draft)
+  const local = depositQuote(state, draft)
+  const quote = {
+    points: remote?.points ?? local.points,
+    base: remote?.basePoints ?? local.base,
+    multiplier: remote?.multiplier ?? local.multiplier,
+    charge: remote ? Number(remote.charge) : local.charge,
+    overMax: remote?.overMax ?? local.overMax,
+  }
   const checksDone = purityChecks.every((check) => draft.checks.includes(check))
-  const rejections = rejectionsThisWeek(state, draft.mobile)
-  const limit = state.rules.rejectionLimit
+  const rejections = remote?.rejectionsThisWeek ?? local.rejectionsThisWeek
+  const limit = remote?.rejectionLimit ?? local.rejectionLimit
   const willFlag = rejecting && rejections + 1 >= limit
   const chargeNeeded = quote.charge > 0 && !draft.chargeCollected
   const canAccept = !notEligible && checksDone && !chargeNeeded
 
-  const save = (rejected: boolean) => {
+  const save = async (rejected: boolean) => {
     if (rejected && !reason) {
       setError(t('Choose a reason to reject.'))
       return
     }
-    const id = nextDepositId(state)
-    setSaved(true)
-    run((current) =>
-      commitDeposit(current, id, {
-        rejected,
-        reason: rejected ? reason : '',
-        note: note.trim(),
-      }),
-    )
-    navigate('/operator/saved')
+    const pending = pendingFromDraft(state, {
+      rejected,
+      reason: rejected ? reason : '',
+      note: note.trim(),
+    })
+    if (!pending) return
+
+    if (offline) {
+      setSaved(true)
+      run((current) => queueDeposit(current, pending, quote))
+      navigate('/operator/saved')
+      return
+    }
+
+    setSaving(true)
+    setError('')
+    try {
+      const deposit = await operatorApi.record(pending)
+      setSaved(true)
+      run((current) => savedDeposit(current, deposit))
+      navigate('/operator/saved')
+      void refresh()
+    } catch (problem) {
+      setError(t(errorMessage(problem)))
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -86,7 +134,7 @@ const ReviewDeposit = () => {
               {t(draft.waste)} · {formatKg(draft.kg)}
             </p>
             <p className="text-muted">
-              {quote.devotee?.name} · +91 {maskMobile(draft.mobile)}
+              {draft.name} · +91 {maskMobile(draft.mobile)}
             </p>
           </div>
         </div>
@@ -132,6 +180,11 @@ const ReviewDeposit = () => {
             {t('The purity checklist is not complete. Go back to tick it, or reject the deposit.')}
           </p>
         )}
+        {error && !rejecting && (
+          <p role="alert" className="text-sm text-sindoor">
+            {error}
+          </p>
+        )}
         {state.operator.offline && (
           <p className="text-sm text-marigold">
             {t('You are offline. This deposit is saved on the device and syncs later.')}
@@ -140,7 +193,7 @@ const ReviewDeposit = () => {
 
         {!rejecting && (
           <>
-            <Button full disabled={!canAccept} onClick={() => save(false)} className="!min-h-14">
+            <Button full disabled={!canAccept || saving} onClick={() => save(false)} className="!min-h-14">
               {t('Accept deposit')}
             </Button>
             <Button variant="danger" full onClick={() => setRejecting(true)}>
@@ -189,7 +242,7 @@ const ReviewDeposit = () => {
               {error}
             </p>
           )}
-          <Button variant="danger" full onClick={() => save(true)} className="!min-h-14">
+          <Button variant="danger" full disabled={saving} onClick={() => save(true)} className="!min-h-14">
             {t('Confirm rejection')}
           </Button>
           {!notEligible && (

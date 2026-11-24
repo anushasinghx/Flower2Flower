@@ -15,8 +15,8 @@ import {
   LanguagePicker,
   TextSizePicker,
 } from '../onboarding/Welcome'
-import { useStore, useT } from '../../store/appStore'
-import { resetDemo, saveProfile, setConsent } from '../../store/actions'
+import { useAction, useStore, useT } from '../../store/appStore'
+import { devotee as devoteeApi } from '../../store/remote'
 import { levelInfo, maskMobile } from '../../utils/points'
 
 const rowClass =
@@ -39,7 +39,8 @@ const LinkRow = ({
 )
 
 const Profile = () => {
-  const { state, run, toast } = useStore()
+  const { state, toast } = useStore()
+  const { act, busy } = useAction()
   const t = useT()
   const navigate = useNavigate()
   const { devotee } = state
@@ -49,16 +50,17 @@ const Profile = () => {
   const [name, setName] = useState(devotee.name)
   const [address, setAddress] = useState(devotee.address)
 
-  const saveEdit = () => {
-    run((current) =>
-      saveProfile(current, {
-        name: name.trim(),
-        address: address.trim(),
-        dob: current.devotee.dob,
-      }),
+  const saveEdit = async () => {
+    const saved = await act(
+      () =>
+        devoteeApi.saveProfile({
+          name: name.trim(),
+          address: address.trim(),
+          dob: devotee.dob,
+        }),
+      t('Profile saved.'),
     )
-    setEditing(false)
-    toast(t('Profile saved.'))
+    if (saved) setEditing(false)
   }
 
   return (
@@ -152,17 +154,6 @@ const Profile = () => {
           >
             {t('Log out')}
           </Button>
-          <Button
-            variant="ghost"
-            full
-            icon="reset"
-            onClick={() => {
-              run(resetDemo)
-              toast(t('Demo data was reset.'))
-            }}
-          >
-            {t('Reset demo data')}
-          </Button>
         </div>
       </div>
 
@@ -171,7 +162,7 @@ const Profile = () => {
         title={t('Edit profile')}
         onClose={() => setEditing(false)}
         footer={
-          <Button full disabled={!name.trim()} onClick={saveEdit}>
+          <Button full disabled={!name.trim() || busy} onClick={saveEdit}>
             {t('Save')}
           </Button>
         }
@@ -223,7 +214,7 @@ const Profile = () => {
                 checked={consent.active}
                 label={t(consent.label)}
                 onChange={(value) =>
-                  run((current) => setConsent(current, consent.id, value))
+                  void act(() => devoteeApi.setConsent(consent.id, value))
                 }
               />
             </div>

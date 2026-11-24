@@ -57,7 +57,7 @@ const SyncQueue = () => {
               >
                 <span className="min-w-0">
                   <span className="block">
-                    #{deposit.id} ·{' '}
+                    {deposit.name} ·{' '}
                     {deposit.status === 'rejected'
                       ? t('Rejected')
                       : `${t(deposit.waste)} ${formatKg(deposit.kg)}`}
@@ -68,6 +68,11 @@ const SyncQueue = () => {
                       ? t('reason saved')
                       : t('photo attached')}
                   </span>
+                  {deposit.syncError && (
+                    <span className="block text-sm text-sindoor">
+                      {t(deposit.syncError)}
+                    </span>
+                  )}
                 </span>
                 <DepositStatusPill status={deposit.status} synced={false} />
               </li>
@@ -78,9 +83,18 @@ const SyncQueue = () => {
         <Button
           full
           onClick={() => {
+            const retry = (current: typeof state) => ({
+              ...current,
+              deposits: current.deposits.map((deposit) =>
+                deposit.syncError ? { ...deposit, syncError: undefined } : deposit,
+              ),
+            })
             if (offline) {
-              run((current) => setOffline(current, false))
+              run((current) => retry(setOffline(current, false)))
               toast(t('Back online. Syncing now.'))
+            } else if (queued.length > 0) {
+              run(retry)
+              toast(t('Syncing now.'))
             } else {
               toast(t('Everything is synced.'))
             }

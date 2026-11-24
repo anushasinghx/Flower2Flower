@@ -7,8 +7,8 @@ import {
   TextInput,
   Toggle,
 } from '../../components/ui/kit'
-import { useStore, useT } from '../../store/appStore'
-import { publishRules } from '../../store/actions'
+import { useAction, useStore, useT } from '../../store/appStore'
+import { adminApi } from '../../store/remote'
 import type { EarningRule, Level, Rules as RulesType } from '../../store/types'
 
 const toNumber = (value: string) => {
@@ -62,8 +62,9 @@ const SettingRow = ({
   </div>
 )
 
-const Rules = () => {
-  const { state, run, toast } = useStore()
+const RulesEditor = () => {
+  const { state } = useStore()
+  const { act, busy } = useAction()
   const t = useT()
   const [draft, setDraft] = useState<RulesType>(state.rules)
   const dirty = JSON.stringify(draft) !== JSON.stringify(state.rules)
@@ -122,9 +123,10 @@ const Rules = () => {
       earning: draft.earning.filter((rule) => rule.waste.trim()),
       levels: draft.levels.filter((level) => level.name.trim()),
     }
-    setDraft({ ...cleaned, version: draft.version + 1 })
-    run((current) => publishRules(current, cleaned))
-    toast(t('Rules published. They apply to new deposits only.'))
+    void act(
+      () => adminApi.publishRules(cleaned),
+      t('Rules published. They apply to new deposits only.'),
+    )
   }
 
   return (
@@ -144,7 +146,7 @@ const Rules = () => {
               {t('Discard')}
             </Button>
           )}
-          <Button disabled={!dirty} onClick={publish}>
+          <Button disabled={!dirty || busy} onClick={publish}>
             {t('Publish changes')}
           </Button>
         </>
@@ -329,6 +331,11 @@ const Rules = () => {
       </NoteBar>
     </AdminPage>
   )
+}
+
+const Rules = () => {
+  const { state } = useStore()
+  return <RulesEditor key={state.rules.version} />
 }
 
 export default Rules

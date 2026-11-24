@@ -2,13 +2,15 @@ import { useState, type FormEvent } from 'react'
 import { Button, Card, Field, InfoNote, Steps } from '../ui/kit'
 import { useStore, useT } from '../../store/appStore'
 import type { Session } from '../../store/types'
-import { DEMO_OTP } from '../../services/mockData'
+import { auth, signedIn } from '../../store/remote'
+import { errorMessage, setToken } from '../../services/api'
 
 type RoleLoginProps = {
   title: string
   role: Exclude<Session, null>
   steps?: string[]
-  isAllowed: (mobile: string) => boolean
+  isAllowed: (userType: string) => boolean
+  createAccount?: boolean
   notAllowedText: string
   demoNote: string
 }
@@ -18,6 +20,7 @@ const RoleLogin = ({
   role,
   steps,
   isAllowed,
+  createAccount = false,
   notAllowedText,
   demoNote,
 }: RoleLoginProps) => {
@@ -27,29 +30,45 @@ const RoleLogin = ({
   const [code, setCode] = useState('')
   const [sent, setSent] = useState(false)
   const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
 
-  const sendOtp = (event: FormEvent<HTMLFormElement>) => {
+  const sendOtp = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
     if (!/^[6-9]\d{9}$/.test(mobile)) {
       setError(t('Enter a valid 10 digit number starting with 6, 7, 8 or 9.'))
       return
     }
-    if (!isAllowed(mobile)) {
-      setError(notAllowedText)
-      return
+    setBusy(true)
+    try {
+      await auth.sendOtp(mobile)
+      setError('')
+      setSent(true)
+    } catch (problem) {
+      setError(t(errorMessage(problem)))
+    } finally {
+      setBusy(false)
     }
-    setError('')
-    setSent(true)
   }
 
-  const verify = () => {
-    if (code !== DEMO_OTP) {
-      setError(t('Incorrect code. Try again.'))
+  const verify = async () => {
+    setBusy(true)
+    try {
+      const response = await auth.verify(mobile, code, createAccount)
+      if (!isAllowed(response.userType)) {
+        setToken('')
+        setError(notAllowedText)
+        setCode('')
+        return
+      }
+      run((state) => signedIn(state, response, role))
+    } catch (problem) {
+      const text = errorMessage(problem)
+      setError(/otp/i.test(text) ? t('Incorrect code. Try again.') : /no account/i.test(text) ? notAllowedText : t(text))
       setCode('')
-      return
+    } finally {
+      setBusy(false)
     }
-    run((state) => ({ ...state, session: role, pendingMobile: mobile }))
   }
 
   return (
@@ -81,7 +100,7 @@ const RoleLogin = ({
             )}
           </Field>
           {!sent && (
-            <Button type="submit" full>
+            <Button type="submit" full disabled={busy}>
               {t('Send OTP')}
             </Button>
           )}
@@ -105,7 +124,7 @@ const RoleLogin = ({
                 />
               )}
             </Field>
-            <Button full disabled={code.length < 6} onClick={verify}>
+            <Button full disabled={code.length < 6 || busy} onClick={verify}>
               {t('Verify and sign in')}
             </Button>
             <Button

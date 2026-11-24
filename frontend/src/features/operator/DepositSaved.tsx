@@ -3,8 +3,8 @@ import Icon from '../../components/ui/Icon'
 import { Button, ButtonLink, Card, EmptyState, InfoNote, Pill } from '../../components/ui/kit'
 import { formatKg } from './helpers'
 import { useStore, useT } from '../../store/appStore'
-import { startDraft } from '../../store/fieldActions'
-import { availablePoints, formatNumber } from '../../utils/points'
+import { findDevotee, startDraft } from '../../store/fieldActions'
+import { formatNumber } from '../../utils/points'
 
 const DepositSaved = () => {
   const { state, run } = useStore()
@@ -22,7 +22,9 @@ const DepositSaved = () => {
     )
   }
 
-  const isCurrent = deposit.mobile === state.devotee.mobile
+  const devotee = deposit.devoteeUserId
+    ? findDevotee(state, deposit.devoteeUserId)
+    : null
   const titles = {
     accepted: t('Accepted'),
     held: t('Accepted, points held'),
@@ -33,7 +35,7 @@ const DepositSaved = () => {
     <div className="mx-auto flex w-full max-w-lg flex-col gap-5">
       <div className="flex items-center justify-between gap-3">
         <h1 className="font-display text-3xl">{t('Deposit saved')}</h1>
-        <Pill>#{deposit.id}</Pill>
+        <Pill>{deposit.synced ? `#${deposit.id}` : t('Queued')}</Pill>
       </div>
 
       <Card className="flex flex-col items-center gap-2 py-8 text-center">
@@ -75,25 +77,20 @@ const DepositSaved = () => {
             {t('Saved on this device. It will sync when online.')}
           </p>
         )}
-        {deposit.synced && isCurrent && deposit.status === 'accepted' && (
-          <p className="text-sm text-muted">
-            {t('New balance {points} pts', {
-              points: formatNumber(availablePoints(state)),
-            })}
-          </p>
-        )}
       </Card>
 
-      <Button
-        full
-        className="!min-h-14"
-        onClick={() => {
-          run((current) => startDraft(current, deposit.mobile))
-          navigate('/operator/waste')
-        }}
-      >
-        {t('Next deposit (same devotee)')}
-      </Button>
+      {devotee && (
+        <Button
+          full
+          className="!min-h-14"
+          onClick={() => {
+            run((current) => startDraft(current, devotee))
+            navigate('/operator/waste')
+          }}
+        >
+          {t('Next deposit (same devotee)')}
+        </Button>
+      )}
       <ButtonLink to="/operator/find" variant="secondary" full>
         {t('New devotee')}
       </ButtonLink>

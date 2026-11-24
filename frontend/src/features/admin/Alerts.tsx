@@ -16,8 +16,8 @@ import {
   Segmented,
   TextArea,
 } from '../../components/ui/kit'
-import { useStore, useT } from '../../store/appStore'
-import { resolveAlert } from '../../store/actions'
+import { useAction, useStore, useT } from '../../store/appStore'
+import { adminApi } from '../../store/remote'
 import type { Alert } from '../../store/types'
 import { formatNumber } from '../../utils/points'
 
@@ -30,7 +30,8 @@ const SeverityPill = ({ severity }: { severity: Alert['severity'] }) => {
 }
 
 const Alerts = () => {
-  const { state, run, toast } = useStore()
+  const { state } = useStore()
+  const { act, busy } = useAction()
   const t = useT()
   const [tab, setTab] = useState<Alert['status']>('open')
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -57,7 +58,7 @@ const Alerts = () => {
     setNoteError('')
   }
 
-  const resolve = (action: 'release' | 'remove' | 'dismiss') => {
+  const resolve = async (action: 'release' | 'remove' | 'dismiss') => {
     if (!selected) return
 
     if (!note.trim()) {
@@ -65,15 +66,15 @@ const Alerts = () => {
       return
     }
 
-    run((current) => resolveAlert(current, selected.id, action, note.trim()))
-    toast(
+    const done = await act(
+      () => adminApi.resolveAlert(selected.id, action, note.trim()),
       action === 'release'
         ? t('Points released. A new ledger entry was added.')
         : action === 'remove'
           ? t('Points removed. A new ledger entry was added.')
           : t('Alert dismissed.'),
     )
-    close()
+    if (done) close()
   }
 
   const columns: Column<Alert>[] = [
@@ -180,7 +181,7 @@ const Alerts = () => {
                   </Field>
                   {selected.heldPoints > 0 && (
                     <div className="grid grid-cols-2 gap-3">
-                      <Button full onClick={() => resolve('release')}>
+                      <Button full disabled={busy} onClick={() => resolve('release')}>
                         {t('Release points')}
                       </Button>
                       <Button

@@ -12,12 +12,13 @@ import {
 } from '../../components/ui/kit'
 import { TempleSteps } from './shared'
 import { useMyTemple } from './useMyTemple'
-import { useStore, useT } from '../../store/appStore'
-import { saveTempleDetails } from '../../store/fieldActions'
+import { useAction, useStore, useT } from '../../store/appStore'
+import { templeApi } from '../../store/remote'
 import type { TempleType } from '../../store/types'
 
 const RegisterTemple = () => {
-  const { state, run } = useStore()
+  const { state } = useStore()
+  const { act, busy } = useAction()
   const t = useT()
   const navigate = useNavigate()
   const temple = useMyTemple()
@@ -43,13 +44,13 @@ const RegisterTemple = () => {
     authorised: !authorised ? t('Please confirm you are authorised.') : '',
   }
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setTried(true)
     if (Object.values(errors).some(Boolean)) return
 
-    run((current) =>
-      saveTempleDetails(current, {
+    const saved = await act(() =>
+      templeApi.saveDetails({
         type,
         name: name.trim(),
         regNo: type === 'registered' ? regNo.trim() : '',
@@ -58,7 +59,7 @@ const RegisterTemple = () => {
         mobile,
       }),
     )
-    navigate('/temple/documents')
+    if (saved) navigate('/temple/documents')
   }
 
   return (
@@ -148,7 +149,7 @@ const RegisterTemple = () => {
             </p>
           )}
 
-          <Button type="submit" full>
+          <Button type="submit" full disabled={busy}>
             {t('Save and add documents')}
           </Button>
         </Card>

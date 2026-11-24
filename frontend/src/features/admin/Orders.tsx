@@ -9,8 +9,9 @@ import {
   type Column,
 } from './parts'
 import { Button, Chips, Field, Pill, TextInput } from '../../components/ui/kit'
-import { useStore, useT } from '../../store/appStore'
-import { logExport, setOrderStatus } from '../../store/actions'
+import { useAction, useStore, useT } from '../../store/appStore'
+import { adminApi } from '../../store/remote'
+import { downloadBlob } from '../../services/api'
 import type { Order, OrderStatus } from '../../store/types'
 import { formatNumber, maskMobile } from '../../utils/points'
 
@@ -41,7 +42,7 @@ const orderTotal = (order: Order) =>
   order.deliveryFee
 
 const OrderPanel = ({ order }: { order: Order }) => {
-  const { run, toast } = useStore()
+  const { act, busy } = useAction()
   const t = useT()
   const [code, setCode] = useState('')
   const [codeError, setCodeError] = useState('')
@@ -49,20 +50,22 @@ const OrderPanel = ({ order }: { order: Order }) => {
   const [confirmingCancel, setConfirmingCancel] = useState(false)
   const pickup = order.fulfilment === 'pickup'
 
-  const move = (status: OrderStatus) => {
-    run((current) => setOrderStatus(current, order.id, status, note.trim()))
-    toast(t('Order #{id} is now {status}.', {
-      id: order.id,
-      status: t(labels[status]),
-    }))
-  }
+  const move = (status: OrderStatus, pickupCode?: string) =>
+    act(
+      () => adminApi.setOrderStatus(order.id, status, note.trim(), pickupCode),
+      t('Order #{id} is now {status}.', {
+        id: order.id,
+        status: t(labels[status]),
+      }),
+    )
 
-  const complete = () => {
-    if (pickup && code !== order.code) {
+  const complete = async () => {
+    if (pickup && !/^\d{4}$/.test(code)) {
       setCodeError(t('That code does not match this order.'))
       return
     }
-    move('completed')
+    const done = await move('completed', pickup ? code : undefined)
+    if (!done && pickup) setCodeError(t('That code does not match this order.'))
   }
 
   return (
@@ -129,17 +132,17 @@ const OrderPanel = ({ order }: { order: Order }) => {
 
       <div className="flex flex-col gap-2">
         {order.status === 'new' && (
-          <Button full onClick={() => move('confirmed')}>
+          <Button full disabled={busy} onClick={() => move('confirmed')}>
             {t('Confirm order')}
           </Button>
         )}
         {order.status === 'confirmed' && (
-          <Button full onClick={() => move('ready')}>
+          <Button full disabled={busy} onClick={() => move('ready')}>
             {pickup ? t('Mark ready for pickup') : t('Mark out for delivery')}
           </Button>
         )}
         {order.status === 'ready' && (
-          <Button full onClick={complete}>
+          <Button full disabled={busy} onClick={complete}>
             {t('Mark completed')}
           </Button>
         )}
@@ -189,7 +192,8 @@ const OrderPanel = ({ order }: { order: Order }) => {
 }
 
 const Orders = () => {
-  const { state, run, toast } = useStore()
+  const { state } = useStore()
+  const { act } = useAction()
   const t = useT()
   const [tab, setTab] = useState<OrderStatus>('new')
   const [query, setQuery] = useState('')
@@ -238,12 +242,12 @@ const Orders = () => {
           <Button
             variant="secondary"
             icon="download"
-            onClick={() => {
-              run((current) =>
-                logExport(current, 'Orders', 'Orders screen export', true),
-              )
-              toast(t('Export is ready. It was written to the audit log.'))
-            }}
+            onClick={() =>
+              void act(async () => {
+                const file = await adminApi.exportCsv('Orders', 'Orders screen export', true)
+                downloadBlob(file.filename, file.blob)
+              }, t('Export is ready. It was written to the audit log.'))
+            }
           >
             {t('Export')}
           </Button>

@@ -17,19 +17,22 @@ import {
   TextArea,
   TextInput,
 } from '../../components/ui/kit'
-import { useStore, useT } from '../../store/appStore'
-import { logExport } from '../../store/actions'
+import { useAction, useStore, useT } from '../../store/appStore'
+import { adminApi } from '../../store/remote'
+import { downloadBlob } from '../../services/api'
 import type { AuditEntry } from '../../store/types'
 
 const datasets = ['Deposits', 'Users', 'Orders', 'Points ledger']
 
-const entryDate = (time: string) => {
-  const [day, month, clock] = time.split(' ')
+const entryDate = (entry: AuditEntry) => {
+  if (entry.at) return new Date(entry.at)
+  const [day, month, clock] = entry.time.split(' ')
   return new Date(`${day} ${month} ${new Date().getFullYear()} ${clock}`)
 }
 
 const AuditLog = () => {
-  const { state, run, toast } = useStore()
+  const { state } = useStore()
+  const { act, busy } = useAction()
   const t = useT()
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
@@ -47,7 +50,7 @@ const AuditLog = () => {
   const actors = [...new Set(state.audit.map((entry) => entry.actor))]
   const actions = [...new Set(state.audit.map((entry) => entry.action))]
   const rows = state.audit.filter((entry) => {
-    const date = entryDate(entry.time)
+    const date = entryDate(entry)
     return (
       (!from || date >= new Date(`${from}T00:00`)) &&
       (!to || date <= new Date(`${to}T23:59`)) &&
@@ -68,9 +71,11 @@ const AuditLog = () => {
       return
     }
 
-    run((current) => logExport(current, dataset, reason.trim(), masked))
-    setReason('')
-    toast(t('Export is ready. It was written to the audit log.'))
+    void act(async () => {
+      const file = await adminApi.exportCsv(dataset, reason.trim(), masked, exportFrom, exportTo)
+      downloadBlob(file.filename, file.blob)
+      setReason('')
+    }, t('Export is ready. It was written to the audit log.'))
   }
 
   const columns: Column<AuditEntry>[] = [
@@ -211,7 +216,7 @@ const AuditLog = () => {
           <CheckRow checked={masked} onChange={setMasked}>
             {t('Mask mobile numbers and ID data')}
           </CheckRow>
-          <Button icon="download" full onClick={runExport}>
+          <Button icon="download" full disabled={busy} onClick={runExport}>
             {t('Export')}
           </Button>
         </Card>

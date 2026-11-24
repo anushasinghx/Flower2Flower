@@ -1,6 +1,7 @@
 import { Link, Navigate, Outlet, useLocation } from 'react-router-dom'
 import { LogoLockup, LogoMark } from '../Brand/Logo'
 import LangSwitch from './LangSwitch'
+import { Loading } from '../ui/kit'
 import LogoutButton from './LogoutButton'
 import { useStore, useT } from '../../store/appStore'
 
@@ -34,7 +35,7 @@ const TempleShell = () => {
       </header>
 
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 pb-12 pt-5 md:pt-8">
-        <Outlet />
+        {!signedIn || state.loaded ? <Outlet /> : <Loading label={t('Loading')} />}
       </main>
     </div>
   )

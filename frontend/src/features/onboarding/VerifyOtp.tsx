@@ -4,8 +4,8 @@ import ScreenHeader from '../../components/Layout/ScreenHeader'
 import { Button, Card, Steps } from '../../components/ui/kit'
 import { useOnboardingSteps } from './steps'
 import { useStore, useT } from '../../store/appStore'
-import { completeLogin, homeFor, isReturningMobile } from '../../store/actions'
-import { DEMO_OTP } from '../../services/mockData'
+import { auth, homeFor, sessionFor, signedIn } from '../../store/remote'
+import { errorMessage } from '../../services/api'
 import { maskMobile } from '../../utils/points'
 
 const MAX_ATTEMPTS = 3
@@ -18,6 +18,8 @@ const VerifyOtp = () => {
   const [code, setCode] = useState('')
   const [attempts, setAttempts] = useState(0)
   const [seconds, setSeconds] = useState(28)
+  const [error, setError] = useState('')
+  const [checking, setChecking] = useState(false)
   const mobile = state.pendingMobile
   const locked = attempts >= MAX_ATTEMPTS
 
@@ -29,20 +31,36 @@ const VerifyOtp = () => {
 
   if (!mobile) return <Navigate to="/login" replace />
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    setChecking(true)
+    setError('')
 
-    if (code !== DEMO_OTP) {
-      setAttempts(attempts + 1)
+    try {
+      const response = await auth.verify(mobile, code)
+      run((current) => signedIn(current, response, sessionFor(response.userType)))
+      navigate(homeFor(response), { replace: true })
+    } catch (problem) {
+      const text = errorMessage(problem)
+      if (/otp/i.test(text)) {
+        setAttempts(attempts + 1)
+      } else {
+        setError(t(text))
+      }
       setCode('')
-      return
+    } finally {
+      setChecking(false)
     }
+  }
 
-    const returning =
-      isReturningMobile(mobile) || mobile === state.devotee.mobile
-    run(completeLogin)
-
-    navigate(homeFor(mobile, returning))
+  const resend = async () => {
+    try {
+      await auth.sendOtp(mobile)
+      setSeconds(28)
+      toast(t('A new OTP was sent.'))
+    } catch (problem) {
+      setError(t(errorMessage(problem)))
+    }
   }
 
   return (
@@ -99,6 +117,11 @@ const VerifyOtp = () => {
               })}
             </p>
           )}
+          {error && (
+            <p role="alert" className="text-sm text-sindoor">
+              {error}
+            </p>
+          )}
           {locked && (
             <p role="alert" className="text-sm text-sindoor">
               {t('This number is locked for 15 minutes.')}
@@ -116,17 +139,14 @@ const VerifyOtp = () => {
             <button
               type="button"
               disabled={seconds > 0 || locked}
-              onClick={() => {
-                setSeconds(28)
-                toast(t('A new OTP was sent.'))
-              }}
+              onClick={resend}
               className="min-h-11 font-medium text-marigold disabled:text-muted"
             >
               {t('Resend OTP')}
             </button>
           </div>
 
-          <Button type="submit" full disabled={code.length < 6 || locked}>
+          <Button type="submit" full disabled={code.length < 6 || locked || checking}>
             {t('Verify')}
           </Button>
         </Card>

@@ -11,7 +11,7 @@ export const purityChecks = [
 export const useDraft = () => {
   const { state } = useStore()
   const draft = state.operator.draft
-  const devotee = draft ? findDevotee(state, draft.mobile) : null
+  const devotee = draft ? findDevotee(state, draft.devoteeUserId) : null
 
   return { draft, devotee }
 }

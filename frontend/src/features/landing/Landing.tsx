@@ -4,7 +4,8 @@ import Icon from '../../components/ui/Icon'
 import { Button, ButtonLink, Card, Pill } from '../../components/ui/kit'
 import { useStore, useT } from '../../store/appStore'
 import { changeCart, setMobile } from '../../store/actions'
-import { initialState, kpisByRange } from '../../services/mockData'
+import { auth } from '../../store/remote'
+import { errorMessage } from '../../services/api'
 import { formatNumber, productName } from '../../utils/points'
 
 const Section = ({
@@ -34,20 +35,12 @@ const Landing = () => {
   const [mobile, setMobileValue] = useState('')
   const [mobileError, setMobileError] = useState('')
 
-  const depositedKg =
-    kpisByRange.all.kg +
-    state.deposits
-      .filter((deposit) => deposit.status !== 'rejected')
-      .reduce((sum, deposit) => sum + deposit.kg, 0)
+  const { publicStats } = state
   const stats = [
-    { value: `${formatNumber(Math.round(depositedKg))} kg`, label: t('nirmalya offered so far'), tone: 'text-marigold' },
-    { value: `${formatNumber(Math.round(depositedKg * 0.9))} kg`, label: t('CO₂e kept out of the air'), tone: 'text-tulsi' },
-    { value: `${formatNumber(Math.round(depositedKg * 0.31))} kg`, label: t('organic manure made'), tone: '' },
-    { value: formatNumber(
-        kpisByRange.all.devotees +
-          state.devotees.length -
-          initialState.devotees.length,
-      ), label: t('devotees taking part'), tone: '' },
+    { value: `${formatNumber(Math.round(publicStats.kgOffered))} kg`, label: t('nirmalya offered so far'), tone: 'text-marigold' },
+    { value: `${formatNumber(Math.round(publicStats.co2AvoidedKg))} kg`, label: t('CO₂e kept out of the air'), tone: 'text-tulsi' },
+    { value: `${formatNumber(Math.round(publicStats.manureKg))} kg`, label: t('organic manure made'), tone: '' },
+    { value: formatNumber(publicStats.devotees), label: t('devotees taking part'), tone: '' },
   ]
 
   const steps = [
@@ -78,14 +71,19 @@ const Landing = () => {
     }
   }
 
-  const join = (event: FormEvent<HTMLFormElement>) => {
+  const join = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!/^[6-9]\d{9}$/.test(mobile)) {
       setMobileError(t('Enter a valid 10 digit number starting with 6, 7, 8 or 9.'))
       return
     }
-    run((current) => setMobile(current, mobile))
-    navigate('/verify')
+    try {
+      await auth.sendOtp(mobile)
+      run((current) => setMobile(current, mobile))
+      navigate('/verify')
+    } catch (problem) {
+      setMobileError(t(errorMessage(problem)))
+    }
   }
 
   return (

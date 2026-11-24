@@ -1,6 +1,7 @@
-import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { Navigate, NavLink, Outlet, useLocation } from 'react-router-dom'
 import TopBar from './TopBar'
 import Icon from '../ui/Icon'
+import { Loading } from '../ui/kit'
 import { devoteeNav } from './devoteeNav'
 import { useStore, useT } from '../../store/appStore'
 
@@ -12,6 +13,8 @@ const DevoteeShell = () => {
   const shopBarShowing = pathname === '/app/shop' && state.cart.length > 0
   const showBottomNav = hasNavRoute && !shopBarShowing
 
+  if (state.session !== 'devotee') return <Navigate to="/login" replace />
+
   return (
     <div className="app-theme flex flex-col">
       <TopBar showNav />
@@ -21,7 +24,7 @@ const DevoteeShell = () => {
           showBottomNav ? 'pb-28 md:pb-12' : 'pb-12'
         }`}
       >
-        <Outlet />
+        {state.loaded ? <Outlet /> : <Loading label={t('Loading')} />}
       </main>
 
       {showBottomNav && (

@@ -12,8 +12,8 @@ import {
   TextLink,
 } from '../../components/ui/kit'
 import LedgerRow from './LedgerRow'
-import { useStore, useT } from '../../store/appStore'
-import { dismissNotice } from '../../store/fieldActions'
+import { useAction, useStore, useT } from '../../store/appStore'
+import { devotee as devoteeApi } from '../../store/remote'
 import type { Notice } from '../../store/types'
 import {
   availablePoints,
@@ -73,6 +73,7 @@ const QrPlaceholder = ({ seed }: { seed: string }) => {
 
 const NoticeCard = ({ notice }: { notice: Notice }) => {
   const { run } = useStore()
+  const { act } = useAction()
   const t = useT()
   const text =
     notice.kind === 'accepted'
@@ -106,7 +107,13 @@ const NoticeCard = ({ notice }: { notice: Notice }) => {
       <button
         type="button"
         aria-label={t('Dismiss')}
-        onClick={() => run((current) => dismissNotice(current, notice.id))}
+        onClick={() => {
+          run((current) => ({
+            ...current,
+            notices: current.notices.filter((item) => item.id !== notice.id),
+          }))
+          void act(() => devoteeApi.dismissNotice(notice.id))
+        }}
         className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted hover:text-ink"
       >
         <Icon name="close" size={18} />

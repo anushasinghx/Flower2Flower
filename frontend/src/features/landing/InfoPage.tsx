@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Button, Card, Field, InfoNote, TextArea, TextInput } from '../../components/ui/kit'
 import { useStore, useT } from '../../store/appStore'
+import { publicApi } from '../../store/remote'
+import { errorMessage } from '../../services/api'
 
 type Kind = 'privacy' | 'terms' | 'contact'
 
@@ -66,10 +68,15 @@ const InfoPage = ({ kind }: { kind: Kind }) => {
           <Button
             full
             disabled={!message.trim()}
-            onClick={() => {
-              setName('')
-              setMessage('')
-              toast(t('Thank you. Your message was sent.'))
+            onClick={async () => {
+              try {
+                await publicApi.contact(name.trim(), message.trim(), feedback ? 'feedback' : 'contact')
+                setName('')
+                setMessage('')
+                toast(t('Thank you. Your message was sent.'))
+              } catch (problem) {
+                toast(t(errorMessage(problem)))
+              }
             }}
           >
             {t('Send')}

@@ -14,12 +14,14 @@ import {
 } from '../../components/ui/kit'
 import { TempleSteps } from './shared'
 import { useMyTemple } from './useMyTemple'
-import { useStore, useT } from '../../store/appStore'
-import { isToday, setTempleTimings } from '../../store/fieldActions'
-import { DEMO_TEMPLE_MOBILE } from '../../services/mockData'
+import { useAction, useStore, useT } from '../../store/appStore'
+import { isToday } from '../../store/fieldActions'
+import { DEMO_TEMPLE_MOBILE } from '../../store/initialState'
+import { templeApi } from '../../store/remote'
 
 const TempleHome = () => {
-  const { state, run, toast } = useStore()
+  const { state } = useStore()
+  const { act, busy } = useAction()
   const t = useT()
   const temple = useMyTemple()
   const [timings, setTimings] = useState(
@@ -32,6 +34,7 @@ const TempleHome = () => {
         title={t('Temple admin login')}
         role="templeAdmin"
         isAllowed={() => true}
+        createAccount
         notAllowedText=""
         demoNote={t('Demo: use {mobile} with OTP 123456. The contact person of a temple signs in here.', {
           mobile: DEMO_TEMPLE_MOBILE,
@@ -164,11 +167,13 @@ const TempleHome = () => {
             </Field>
             <Button
               variant="secondary"
-              disabled={!timings.trim()}
-              onClick={() => {
-                run((current) => setTempleTimings(current, timings.trim()))
-                toast(t('Counter timings saved.'))
-              }}
+              disabled={!timings.trim() || busy}
+              onClick={() =>
+                void act(
+                  () => templeApi.setTimings(timings.trim()),
+                  t('Counter timings saved.'),
+                )
+              }
             >
               {t('Save timings')}
             </Button>

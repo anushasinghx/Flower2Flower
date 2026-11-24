@@ -10,7 +10,7 @@ import {
 import { formatKg } from './helpers'
 import { useStore, useT } from '../../store/appStore'
 import { isToday, setOperatorTemple } from '../../store/fieldActions'
-import { DEMO_OPERATOR_MOBILE } from '../../services/mockData'
+import { DEMO_OPERATOR_MOBILE } from '../../store/initialState'
 
 const OperatorHome = () => {
   const { state, run } = useStore()
@@ -18,16 +18,14 @@ const OperatorHome = () => {
   const steps = [t('Login'), t('Temple'), t('Collect')]
 
   if (state.session !== 'operator') {
-    const operators = state.staff
-      .filter((item) => item.role === 'operator' && item.status === 'active')
-      .map((item) => item.mobile)
-
     return (
       <RoleLogin
         title={t('Operator login')}
         role="operator"
         steps={steps}
-        isAllowed={(mobile) => operators.includes(mobile)}
+        isAllowed={(userType) =>
+          ['operator', 'admin', 'superAdmin'].includes(userType)
+        }
         notAllowedText={t('This number is not registered as an operator.')}
         demoNote={t('Demo: use {mobile} with OTP 123456.', {
           mobile: DEMO_OPERATOR_MOBILE,
@@ -84,9 +82,15 @@ const OperatorHome = () => {
           </div>
         </div>
 
-        <ButtonLink to="/operator/find" full className="!min-h-14">
-          {t('Start collection')}
-        </ButtonLink>
+        {temples.length === 0 ? (
+          <p className="text-sm text-sindoor">
+            {t('No verified temple yet. An admin must verify a temple before collection can start.')}
+          </p>
+        ) : (
+          <ButtonLink to="/operator/find" full className="!min-h-14">
+            {t('Start collection')}
+          </ButtonLink>
+        )}
       </Card>
 
       <div className="flex flex-wrap justify-center gap-6">

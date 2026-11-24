@@ -10,8 +10,8 @@ import {
   Sheet,
   TextInput,
 } from '../../components/ui/kit'
-import { useStore, useT } from '../../store/appStore'
-import { createBatch } from '../../store/actions'
+import { useAction, useStore, useT } from '../../store/appStore'
+import { adminApi } from '../../store/remote'
 import type { Batch, BatchStatus } from '../../store/types'
 import { batchInputKg, batchStages } from './batchStages'
 
@@ -33,7 +33,8 @@ export const BatchStatusPill = ({ status }: { status: BatchStatus }) => {
 type Tab = 'all' | BatchStatus
 
 const Batches = () => {
-  const { state, run, toast } = useStore()
+  const { state } = useStore()
+  const { act, busy } = useAction()
   const t = useT()
   const navigate = useNavigate()
   const [tab, setTab] = useState<Tab>('all')
@@ -62,25 +63,19 @@ const Batches = () => {
     setOverrideReason('')
   }
 
-  const create = () => {
-    const inputs = pickedRows.map((item) => ({
-      source: item.source,
-      date: item.date,
-      kg: item.kg,
-    }))
-
-    if (overridden) {
-      inputs.push({
-        source: `Weight correction: ${overrideReason.trim()}`,
-        date: inputs[0].date,
-        kg: Number(totalOverride) - autoTotal,
-      })
-    }
-
-    run((current) => createBatch(current, { inputs }, picked))
+  const create = async () => {
+    const done = await act(
+      () =>
+        adminApi.createBatch(
+          picked,
+          overridden ? Number(totalOverride) : null,
+          overridden ? overrideReason.trim() : '',
+        ),
+      t('Batch created.'),
+    )
+    if (!done) return
     resetForm()
     setTab('all')
-    toast(t('Batch created.'))
   }
 
   const columns: Column<Batch>[] = [
@@ -154,7 +149,7 @@ const Batches = () => {
         title={t('Create batch')}
         onClose={resetForm}
         footer={
-          <Button full disabled={!canCreate} onClick={create}>
+          <Button full disabled={!canCreate || busy} onClick={create}>
             {t('Create batch')}
           </Button>
         }

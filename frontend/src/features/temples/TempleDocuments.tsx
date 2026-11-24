@@ -5,15 +5,17 @@ import { Button, Card, Field, InfoNote, Pill, TextInput } from '../../components
 import { UploadTile } from '../onboarding/KycUpload'
 import { TempleSteps } from './shared'
 import { useMyTemple } from './useMyTemple'
-import { useStore, useT } from '../../store/appStore'
-import { submitTempleDocs } from '../../store/fieldActions'
+import { useAction, useT } from '../../store/appStore'
+import { templeApi } from '../../store/remote'
 
 const TempleDocuments = () => {
-  const { run, toast } = useStore()
+  const { act, busy } = useAction()
   const t = useT()
   const navigate = useNavigate()
   const temple = useMyTemple()
   const [photo, setPhoto] = useState('')
+  const [photoFile, setPhotoFile] = useState<File | null>(null)
+  const [uploads, setUploads] = useState<Record<string, File>>({})
   const [deity, setDeity] = useState(temple?.deity ?? '')
   const [files, setFiles] = useState<Record<string, string>>({})
   const [tried, setTried] = useState(false)
@@ -26,12 +28,17 @@ const TempleDocuments = () => {
       : ['Committee letter', 'Admin ID proof']
   const missing = required.filter((doc) => !files[doc])
 
-  const submit = () => {
+  const submit = async () => {
     setTried(true)
     if (missing.length) return
-    run((current) => submitTempleDocs(current, deity.trim(), required))
-    toast(t('Sent for verification.'))
-    navigate('/temple')
+    const chosen = Object.fromEntries(
+      required.flatMap((doc) => (uploads[doc] ? [[doc, uploads[doc]]] : [])),
+    )
+    const sent = await act(
+      () => templeApi.submit(deity.trim(), photoFile, chosen),
+      t('Sent for verification.'),
+    )
+    if (sent) navigate('/temple')
   }
 
   return (
@@ -41,7 +48,14 @@ const TempleDocuments = () => {
 
       <Card className="flex flex-col gap-4">
         <div className="grid grid-cols-[7rem_1fr] gap-3">
-          <UploadTile label={t('Logo or photo')} fileName={photo} onPick={setPhoto} />
+          <UploadTile
+            label={t('Logo or photo')}
+            fileName={photo}
+            onPick={(name, file) => {
+              setPhoto(name)
+              setPhotoFile(file)
+            }}
+          />
           <div className="flex flex-col gap-3">
             <p className="text-lg font-bold leading-snug">{temple.name}</p>
             <Field label={t('Deity or tradition')}>
@@ -65,7 +79,10 @@ const TempleDocuments = () => {
           <UploadTile
             label={t('Upload PDF or photo')}
             fileName={files[doc] ?? ''}
-            onPick={(name) => setFiles({ ...files, [doc]: name })}
+            onPick={(name, file) => {
+              setFiles({ ...files, [doc]: name })
+              if (file) setUploads({ ...uploads, [doc]: file })
+            }}
           />
         </Card>
       ))}
@@ -75,7 +92,7 @@ const TempleDocuments = () => {
         </p>
       )}
 
-      <Button full onClick={submit} className="!min-h-14">
+      <Button full disabled={busy} onClick={submit} className="!min-h-14">
         {t('Submit for verification')}
       </Button>
       <InfoNote>

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import ScreenHeader from '../../components/Layout/ScreenHeader'
 import Icon from '../../components/ui/Icon'
 import {
@@ -15,8 +15,8 @@ import {
   TextInput,
 } from '../../components/ui/kit'
 import { useOnboardingSteps } from './steps'
-import { useStore, useT } from '../../store/appStore'
-import { submitKyc } from '../../store/actions'
+import { useAction, useStore, useT } from '../../store/appStore'
+import { devotee as devoteeApi } from '../../store/remote'
 
 const docTypes = ['Aadhaar', 'Voter ID', 'Driving licence']
 
@@ -27,7 +27,7 @@ export const UploadTile = ({
 }: {
   label: string
   fileName: string
-  onPick: (name: string) => void
+  onPick: (name: string, file: File | null) => void
 }) => {
   const t = useT()
 
@@ -46,14 +46,18 @@ export const UploadTile = ({
         type="file"
         accept="image/*,application/pdf"
         className="sr-only"
-        onChange={(event) => onPick(event.target.files?.[0]?.name ?? '')}
+        onChange={(event) => {
+          const file = event.target.files?.[0] ?? null
+          onPick(file?.name ?? '', file)
+        }}
       />
     </label>
   )
 }
 
 const KycUpload = ({ inApp = false }: { inApp?: boolean }) => {
-  const { state, run } = useStore()
+  const { state } = useStore()
+  const { act, busy } = useAction()
   const t = useT()
   const navigate = useNavigate()
   const steps = useOnboardingSteps()
@@ -63,17 +67,24 @@ const KycUpload = ({ inApp = false }: { inApp?: boolean }) => {
   const [docNumber, setDocNumber] = useState('')
   const [front, setFront] = useState('')
   const [back, setBack] = useState('')
+  const [frontFile, setFrontFile] = useState<File | null>(null)
+  const [backFile, setBackFile] = useState<File | null>(null)
   const [tried, setTried] = useState(false)
   const [reuploading, setReuploading] = useState(false)
   const showForm = kyc === 'notStarted' || reuploading
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  if (state.session !== 'devotee') return <Navigate to="/login" replace />
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setTried(true)
-    if (!docType || !docNumber.trim() || !front || !back) return
+    if (!docType || !docNumber.trim() || !frontFile || !backFile) return
 
-    run((current) => submitKyc(current, { docType, docNumber }))
-    setReuploading(false)
+    const sent = await act(
+      () => devoteeApi.submitKyc(docType, docNumber.trim(), frontFile, backFile),
+      t('Sent for review.'),
+    )
+    if (sent) setReuploading(false)
   }
 
   const statusIndex = kyc === 'inReview' ? 1 : 2
@@ -124,15 +135,29 @@ const KycUpload = ({ inApp = false }: { inApp?: boolean }) => {
               )}
             </Field>
             <div className="grid grid-cols-2 gap-3">
-              <UploadTile label={t('Front side')} fileName={front} onPick={setFront} />
-              <UploadTile label={t('Back side')} fileName={back} onPick={setBack} />
+              <UploadTile
+                label={t('Front side')}
+                fileName={front}
+                onPick={(name, file) => {
+                  setFront(name)
+                  setFrontFile(file)
+                }}
+              />
+              <UploadTile
+                label={t('Back side')}
+                fileName={back}
+                onPick={(name, file) => {
+                  setBack(name)
+                  setBackFile(file)
+                }}
+              />
             </div>
             {tried && (!front || !back) && (
               <p role="alert" className="text-sm text-sindoor">
                 {t('Add both sides of the document.')}
               </p>
             )}
-            <Button type="submit" full>
+            <Button type="submit" full disabled={busy}>
               {t('Submit for review')}
             </Button>
             {!inApp && (

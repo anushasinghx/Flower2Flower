@@ -10,11 +10,10 @@ import {
   Sheet,
   TextInput,
 } from '../../components/ui/kit'
-import { useStore, useT } from '../../store/appStore'
-import { saveStaff } from '../../store/actions'
+import { useAction, useStore, useT } from '../../store/appStore'
+import { adminApi } from '../../store/remote'
 import type { Staff, StaffRole } from '../../store/types'
 import { maskMobile } from '../../utils/points'
-import { DEMO_ADMIN_MOBILE } from '../../services/mockData'
 
 const roleLabels: Record<StaffRole, string> = {
   admin: 'Admin',
@@ -63,7 +62,8 @@ const blankStaff = (): Staff => ({
 })
 
 const UsersRoles = () => {
-  const { state, run, toast } = useStore()
+  const { state } = useStore()
+  const { act, busy } = useAction()
   const t = useT()
   const [editing, setEditing] = useState<Staff | null>(null)
   const isNew =
@@ -79,7 +79,7 @@ const UsersRoles = () => {
       key: 'mobile',
       header: t('Mobile'),
       render: (row) =>
-        row.mobile === DEMO_ADMIN_MOBILE ? row.mobile : maskMobile(row.mobile),
+        row.id === state.user?.userId ? row.mobile : maskMobile(row.mobile),
     },
     { key: 'role', header: t('Role'), render: (row) => t(roleLabels[row.role]) },
     {
@@ -167,11 +167,13 @@ const UsersRoles = () => {
           editing && (
             <Button
               full
-              disabled={!canSave}
-              onClick={() => {
-                run((current) => saveStaff(current, editing))
-                setEditing(null)
-                toast(isNew ? t('Invite sent.') : t('Staff details saved.'))
+              disabled={!canSave || busy}
+              onClick={async () => {
+                const done = await act(
+                  () => adminApi.saveStaff(editing, !isNew),
+                  isNew ? t('Invite sent.') : t('Staff details saved.'),
+                )
+                if (done) setEditing(null)
               }}
             >
               {isNew ? t('Send invite') : t('Save')}

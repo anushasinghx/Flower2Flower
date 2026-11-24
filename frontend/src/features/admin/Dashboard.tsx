@@ -1,23 +1,32 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AdminPage } from './parts'
-import { Button, Card, Chips } from '../../components/ui/kit'
-import { useStore, useT } from '../../store/appStore'
-import { logExport } from '../../store/actions'
-import {
-  collectionByDay,
-  kpisByRange,
-  retentionCohorts,
-} from '../../services/mockData'
+import { Button, Card, Chips, Loading } from '../../components/ui/kit'
+import { useAction, useStore, useT } from '../../store/appStore'
+import { adminApi, type DashboardView } from '../../store/remote'
+import { downloadBlob, errorMessage } from '../../services/api'
 import { formatNumber } from '../../utils/points'
 
-type Range = keyof typeof kpisByRange
+type Range = '30' | '7' | 'all'
 
-const CollectionChart = () => {
+const niceMax = (value: number) => {
+  if (value <= 0) return 4
+  const step = Math.pow(10, Math.floor(Math.log10(value / 4)))
+  const unit = [1, 2, 2.5, 5, 10].map((factor) => factor * step).find((size) => size * 4 >= value) ?? step * 10
+  return unit * 4
+}
+
+const CollectionChart = ({
+  data,
+  busiest,
+}: {
+  data: DashboardView['collectionByDay']
+  busiest: DashboardView['busiestDay']
+}) => {
   const t = useT()
   const [active, setActive] = useState<string | null>(null)
-  const scaleMax = 160
-  const ticks = [0, 40, 80, 120, 160]
+  const scaleMax = niceMax(Math.max(0, ...data.map((item) => item.kg)))
+  const ticks = [0, 1, 2, 3, 4].map((index) => Math.round((scaleMax / 4) * index * 100) / 100)
 
   return (
     <div>
@@ -40,9 +49,9 @@ const CollectionChart = () => {
         ))}
 
         <div className="relative z-10 flex h-full items-end">
-          {collectionByDay.map((item) => (
+          {data.map((item) => (
             <button
-              key={item.day}
+              key={item.date}
               type="button"
               aria-label={`${t(item.day)}: ${item.kg} kg`}
               onMouseEnter={() => setActive(item.day)}
@@ -70,9 +79,9 @@ const CollectionChart = () => {
         </div>
       </div>
       <div className="mt-2 flex pl-8">
-        {collectionByDay.map((item) => (
+        {data.map((item) => (
           <span
-            key={item.day}
+            key={item.date}
             className="flex-1 text-center text-sm text-muted"
           >
             {t(item.day)}
@@ -80,17 +89,49 @@ const CollectionChart = () => {
         ))}
       </div>
       <p className="mt-2 text-sm text-muted">
-        {t('Busiest day: {day}, {kg} kg', { day: t('Sat'), kg: 154 })}
+        {busiest
+          ? t('Busiest day: {day}, {kg} kg', { day: t(busiest.day), kg: busiest.kg })
+          : t('No deposits in the last 7 days.')}
       </p>
     </div>
   )
 }
 
 const Dashboard = () => {
-  const { state, run, toast } = useStore()
+  const { state } = useStore()
+  const { act } = useAction()
   const t = useT()
   const [range, setRange] = useState<Range>('30')
-  const kpi = kpisByRange[range]
+  const [data, setData] = useState<DashboardView | null>(null)
+  const [failed, setFailed] = useState('')
+  const audits = state.audit.length
+
+  useEffect(() => {
+    let alive = true
+    adminApi
+      .dashboard(range)
+      .then((value) => {
+        if (!alive) return
+        setData(value)
+        setFailed('')
+      })
+      .catch((problem) => {
+        if (alive) setFailed(errorMessage(problem))
+      })
+    return () => {
+      alive = false
+    }
+  }, [range, audits])
+
+  if (!data) {
+    return (
+      <AdminPage title={t('Pilot KPIs')}>
+        {failed ? <p className="text-sindoor">{t(failed)}</p> : <Loading label={t('Loading')} />}
+      </AdminPage>
+    )
+  }
+
+  const kpi = data.kpis
 
   const kpis = [
     {
@@ -105,7 +146,10 @@ const Dashboard = () => {
     },
     {
       label: t('Carbon offset'),
-      value: `${kpi.carbon} t CO₂e`,
+      value:
+        kpi.carbonTonnes >= 1
+          ? `${kpi.carbonTonnes} t CO₂e`
+          : `${formatNumber(Math.round(kpi.kg * 0.9))} kg CO₂e`,
       note: t('formula: kg x factor'),
       green: true,
     },
@@ -119,27 +163,25 @@ const Dashboard = () => {
   const queues = [
     {
       label: t('KYC pending'),
-      value: state.kycRequests.filter((item) => item.status === 'pending').length,
+      value: data.queues.kycPending,
       to: '/admin/kyc',
       action: t('Review'),
     },
     {
       label: t('Open alerts'),
-      value: state.alerts.filter((item) => item.status === 'open').length,
+      value: data.queues.openAlerts,
       to: '/admin/alerts',
       action: t('Review'),
     },
     {
       label: t('Active batches'),
-      value: state.batches.filter((item) => item.status !== 'closed').length,
+      value: data.queues.activeBatches,
       to: '/admin/batches',
       action: t('View'),
     },
     {
       label: t('Orders to fulfil'),
-      value: state.orders.filter(
-        (item) => !['completed', 'cancelled'].includes(item.status),
-      ).length,
+      value: data.queues.ordersToFulfil,
       to: '/admin/orders',
       action: t('View'),
     },
@@ -163,12 +205,12 @@ const Dashboard = () => {
           <Button
             variant="secondary"
             icon="download"
-            onClick={() => {
-              run((current) =>
-                logExport(current, 'Pilot KPIs', 'Dashboard export', true),
-              )
-              toast(t('Export is ready. It was written to the audit log.'))
-            }}
+            onClick={() =>
+              void act(async () => {
+                const file = await adminApi.exportCsv('Pilot KPIs', 'Dashboard export', true)
+                downloadBlob(file.filename, file.blob)
+              }, t('Export is ready. It was written to the audit log.'))
+            }
           >
             {t('Export')}
           </Button>
@@ -194,7 +236,7 @@ const Dashboard = () => {
       <div className="grid gap-4 xl:grid-cols-2">
         <Card>
           <h2 className="mb-4 text-lg font-bold">{t('Collection by day (kg)')}</h2>
-          <CollectionChart />
+          <CollectionChart data={data.collectionByDay} busiest={data.busiestDay} />
         </Card>
         <Card>
           <h2 className="mb-4 text-lg font-bold">
@@ -215,7 +257,7 @@ const Dashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {retentionCohorts.map((row) => (
+                {data.retentionCohorts.map((row) => (
                   <tr
                     key={row.cohort}
                     className="border-b border-line last:border-b-0"
@@ -225,7 +267,7 @@ const Dashboard = () => {
                     </th>
                     {row.values.map((value, index) => (
                       <td key={index} className="px-2 py-3">
-                        {value === null ? (
+                        {value === null || row.size === 0 ? (
                           <span className="text-muted" aria-label={t('No data yet')}>
                             ·
                           </span>

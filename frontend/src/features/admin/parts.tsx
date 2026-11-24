@@ -1,5 +1,6 @@
-import type { ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import { api } from '../../services/api'
 import Icon from '../../components/ui/Icon'
 import { Card, EmptyState, Sheet } from '../../components/ui/kit'
 import useMediaQuery from '../../hooks/useMediaQuery'
@@ -245,11 +246,49 @@ export const HistoryList = ({ items }: { items: string[] }) => {
   )
 }
 
-export const PhotoTile = ({ label }: { label: string }) => (
-  <div className="flex aspect-[4/3] items-center justify-center rounded-2xl border border-line bg-raised p-2 text-center text-sm text-muted">
-    {label}
-  </div>
-)
+export const PhotoTile = ({ label, fileId }: { label: string; fileId?: string | null }) => {
+  const [file, setFile] = useState<{ url: string; image: boolean } | null>(null)
+  const [failed, setFailed] = useState(false)
+
+  useEffect(() => {
+    if (!fileId) return
+    let alive = true
+    let url = ''
+    api
+      .file(fileId)
+      .then((blob) => {
+        url = URL.createObjectURL(blob)
+        if (alive) setFile({ url, image: blob.type.startsWith('image/') })
+      })
+      .catch(() => {
+        if (alive) setFailed(true)
+      })
+    return () => {
+      alive = false
+      if (url) URL.revokeObjectURL(url)
+    }
+  }, [fileId])
+
+  if (fileId && file?.image) {
+    return (
+      <a href={file.url} target="_blank" rel="noreferrer" className="block aspect-[4/3] overflow-hidden rounded-2xl border border-line">
+        <img src={file.url} alt={label} className="h-full w-full object-cover" />
+      </a>
+    )
+  }
+
+  return (
+    <div className="flex aspect-[4/3] flex-col items-center justify-center gap-1 rounded-2xl border border-line bg-raised p-2 text-center text-sm text-muted">
+      <span>{label}</span>
+      {fileId && file && !file.image && (
+        <a href={file.url} target="_blank" rel="noreferrer" className="font-medium text-marigold underline underline-offset-4">
+          PDF
+        </a>
+      )}
+      {fileId && failed && <span className="text-sindoor">·</span>}
+    </div>
+  )
+}
 
 export const DetailRow = ({
   label,

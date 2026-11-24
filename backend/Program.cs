@@ -31,7 +31,7 @@ if (string.IsNullOrWhiteSpace(connectionString))
 var jwtSigningKey = builder.Configuration["JWT_SIGNING_KEY"] ?? builder.Configuration["Jwt:SigningKey"];
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? builder.Configuration["JWT_ISSUER"] ?? "Flower2Flower";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? builder.Configuration["JWT_AUDIENCE"] ?? "Flower2Flower-Frontend";
-var allowedFrontendOrigins = builder.Configuration["AllowedFrontendOrigins"] ?? builder.Configuration["ALLOWED_FRONTEND_ORIGINS"] ?? "http://localhost:3000,https://localhost:3000";
+var allowedFrontendOrigins = builder.Configuration["AllowedFrontendOrigins"] ?? builder.Configuration["ALLOWED_FRONTEND_ORIGINS"] ?? "http://localhost:3000,https://localhost:3000,http://localhost:5173";
 
 if (builder.Environment.IsProduction())
 {
@@ -131,7 +131,7 @@ using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     dbContext.Database.Migrate();
-    await DataSeeder.SeedAsync(dbContext, app.Configuration);
+    await DataSeeder.SeedAsync(dbContext, app.Configuration, app.Environment.IsDevelopment() || string.Equals(app.Configuration["SEED_DEMO_DATA"], "true", StringComparison.OrdinalIgnoreCase));
 }
 
 if (app.Environment.IsDevelopment())

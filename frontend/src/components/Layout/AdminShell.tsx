@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
-import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { Navigate, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { LogoLockup, LogoMark } from '../Brand/Logo'
 import Icon, { type IconName } from '../ui/Icon'
+import { Loading } from '../ui/kit'
 import LangSwitch from './LangSwitch'
 import LogoutButton from './LogoutButton'
 import { useStore, useT } from '../../store/appStore'
-import { resetDemo } from '../../store/actions'
 
 type NavItem = { to: string; label: string; icon: IconName }
 
@@ -94,7 +94,7 @@ const SideNav = ({
 }
 
 const AdminMenu = () => {
-  const { run, toast } = useStore()
+  const { state, refresh, toast } = useStore()
   const t = useT()
   const [open, setOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -119,7 +119,9 @@ const AdminMenu = () => {
         className="flex h-11 items-center gap-2 rounded-full border border-line px-3 text-sm text-ink hover:bg-surface"
       >
         <Icon name="user" size={18} />
-        <span className="hidden sm:inline">{t('Admin')}</span>
+        <span className="hidden max-w-40 truncate sm:inline">
+          {state.user?.name || t('Admin')}
+        </span>
       </button>
       {open && (
         <div
@@ -129,15 +131,15 @@ const AdminMenu = () => {
           <button
             type="button"
             role="menuitem"
-            onClick={() => {
-              run(resetDemo)
+            onClick={async () => {
               setOpen(false)
-              toast(t('Demo data was reset.'))
+              await refresh()
+              toast(t('Data refreshed.'))
             }}
             className="flex min-h-11 w-full items-center gap-2 rounded-xl px-3 text-left hover:bg-raised"
           >
             <Icon name="reset" size={18} />
-            {t('Reset demo data')}
+            {t('Refresh data')}
           </button>
         </div>
       )}
@@ -147,9 +149,12 @@ const AdminMenu = () => {
 
 const AdminShell = () => {
   const t = useT()
+  const { state } = useStore()
   const { pathname } = useLocation()
   const [drawerOpen, setDrawerOpen] = useState(false)
   const nursery = pathname.startsWith('/admin/batches')
+
+  if (state.session !== 'admin') return <Navigate to="/login" replace />
 
   return (
     <div className="app-theme flex flex-col">
@@ -197,7 +202,7 @@ const AdminShell = () => {
 
         <main className="min-w-0 flex-1 px-4 pb-12 pt-5 md:px-6 md:pt-6 lg:px-8">
           <div className="mx-auto w-full max-w-[90rem]">
-            <Outlet />
+            {state.loaded ? <Outlet /> : <Loading label={t('Loading')} />}
           </div>
         </main>
       </div>

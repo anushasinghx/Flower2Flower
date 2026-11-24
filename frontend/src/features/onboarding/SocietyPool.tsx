@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import ScreenHeader from '../../components/Layout/ScreenHeader'
 import Icon from '../../components/ui/Icon'
 import {
@@ -11,12 +11,13 @@ import {
   TextInput,
   Toggle,
 } from '../../components/ui/kit'
-import { useStore, useT } from '../../store/appStore'
-import { setSociety } from '../../store/actions'
+import { useAction, useStore, useT } from '../../store/appStore'
+import { devotee as devoteeApi } from '../../store/remote'
 import { formatNumber } from '../../utils/points'
 
 const SocietyPool = ({ inApp = false }: { inApp?: boolean }) => {
-  const { state, run, toast } = useStore()
+  const { state } = useStore()
+  const { act, busy } = useAction()
   const t = useT()
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
@@ -30,10 +31,14 @@ const SocietyPool = ({ inApp = false }: { inApp?: boolean }) => {
       .includes(query.trim().toLowerCase()),
   )
 
-  const save = () => {
-    run((current) => setSociety(current, selected, poolOn && selected !== null))
-    if (inApp) toast(t('Society choice saved.'))
-    navigate(nextPath)
+  if (state.session !== 'devotee') return <Navigate to="/login" replace />
+
+  const save = async () => {
+    const saved = await act(
+      () => devoteeApi.setSociety(selected, poolOn && selected !== null),
+      inApp ? t('Society choice saved.') : undefined,
+    )
+    if (saved) navigate(nextPath)
   }
 
   return (
@@ -125,7 +130,7 @@ const SocietyPool = ({ inApp = false }: { inApp?: boolean }) => {
         </Card>
       )}
 
-      <Button full onClick={save}>
+      <Button full disabled={busy} onClick={save}>
         {inApp ? t('Save') : t('Continue to Home')}
       </Button>
       {!inApp && (

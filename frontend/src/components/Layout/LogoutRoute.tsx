@@ -1,15 +1,14 @@
 import { useEffect } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useStore } from '../../store/appStore'
-import { logout } from '../../store/actions'
+import { auth, signedOut } from '../../store/remote'
 
-// Signing out happens on its own route, after the role screen has closed,
-// so no role screen can redirect to its own login first.
 const LogoutRoute = () => {
   const { run } = useStore()
 
   useEffect(() => {
-    run(logout)
+    void auth.logout()
+    run(signedOut)
   }, [run])
 
   return <Navigate to="/" replace />

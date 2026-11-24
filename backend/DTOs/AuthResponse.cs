@@ -18,4 +18,6 @@ public sealed class AuthResponse
     public bool MobileVerified { get; set; }
     public string AccountStatus { get; set; } = string.Empty;
     public DateTime CreatedAtUtc { get; set; }
+    public bool IsNewUser { get; set; }
+    public bool ProfileComplete { get; set; }
 }

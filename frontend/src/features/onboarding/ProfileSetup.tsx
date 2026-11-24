@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import ScreenHeader from '../../components/Layout/ScreenHeader'
 import {
   Button,
@@ -11,8 +11,8 @@ import {
   TextInput,
 } from '../../components/ui/kit'
 import { useOnboardingSteps } from './steps'
-import { useStore, useT } from '../../store/appStore'
-import { saveProfile } from '../../store/actions'
+import { useAction, useStore, useT } from '../../store/appStore'
+import { devotee as devoteeApi } from '../../store/remote'
 
 const yearsSince = (date: string) => {
   const birth = new Date(date)
@@ -31,7 +31,8 @@ const consentCopy = {
 }
 
 const ProfileSetup = () => {
-  const { state, run } = useStore()
+  const { state } = useStore()
+  const { act, busy } = useAction()
   const t = useT()
   const navigate = useNavigate()
   const steps = useOnboardingSteps()
@@ -44,7 +45,9 @@ const ProfileSetup = () => {
   const [underage, setUnderage] = useState(false)
   const [tried, setTried] = useState(false)
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  if (state.session !== 'devotee') return <Navigate to="/login" replace />
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setTried(true)
 
@@ -55,8 +58,11 @@ const ProfileSetup = () => {
       return
     }
 
-    run((current) => saveProfile(current, { name: name.trim(), dob, address }))
-    navigate('/onboarding/kyc')
+    const saved = await act(async () => {
+      await devoteeApi.saveProfile({ name: name.trim(), dob, address: address.trim() })
+      await devoteeApi.giveConsents()
+    })
+    if (saved) navigate('/onboarding/kyc')
   }
 
   if (underage) {
@@ -155,7 +161,7 @@ const ProfileSetup = () => {
             )}
           </fieldset>
 
-          <Button type="submit" full>
+          <Button type="submit" full disabled={busy}>
             {t('Save and continue')}
           </Button>
         </Card>

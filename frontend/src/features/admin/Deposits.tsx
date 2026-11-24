@@ -1,25 +1,26 @@
 import { AdminPage, NoteBar } from './parts'
 import { Button } from '../../components/ui/kit'
 import DepositHistory from '../history/DepositHistory'
-import { depositsCsv, downloadText } from '../history/historyHelpers'
-import { useStore, useT } from '../../store/appStore'
-import { logExport } from '../../store/actions'
+import { useAction, useStore, useT } from '../../store/appStore'
+import { adminApi } from '../../store/remote'
+import { downloadBlob } from '../../services/api'
 
 const Deposits = () => {
-  const { state, run, toast } = useStore()
+  const { state } = useStore()
+  const { act, busy } = useAction()
   const t = useT()
 
-  const download = () => {
-    downloadText('deposits.csv', depositsCsv(state.deposits, state.temples))
-    run((current) => logExport(current, 'Deposits', 'Deposit history download', true))
-    toast(t('Export is ready. It was written to the audit log.'))
-  }
+  const download = () =>
+    void act(async () => {
+      const file = await adminApi.exportCsv('Deposits', 'Deposit history download', true)
+      downloadBlob(file.filename, file.blob)
+    }, t('Export is ready. It was written to the audit log.'))
 
   return (
     <AdminPage
       title={t('Deposit history')}
       actions={
-        <Button variant="secondary" icon="download" onClick={download}>
+        <Button variant="secondary" icon="download" disabled={busy} onClick={download}>
           {t('Download CSV')}
         </Button>
       }

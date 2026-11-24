@@ -21,8 +21,8 @@ import {
   TextArea,
   TextInput,
 } from '../../components/ui/kit'
-import { useStore, useT } from '../../store/appStore'
-import { addTemple, decideTemple } from '../../store/actions'
+import { useAction, useStore, useT } from '../../store/appStore'
+import { adminApi } from '../../store/remote'
 import type { Temple, TempleStatus, TempleType } from '../../store/types'
 import { maskMobile } from '../../utils/points'
 
@@ -53,7 +53,7 @@ const TempleDetail = ({
   temple: Temple
   onDone: () => void
 }) => {
-  const { run, toast } = useStore()
+  const { act, busy } = useAction()
   const t = useT()
   const [checks, setChecks] = useState<string[]>([])
   const [badge, setBadge] = useState(
@@ -62,28 +62,30 @@ const TempleDetail = ({
   const [note, setNote] = useState('')
   const [noteError, setNoteError] = useState('')
   const allChecked = checks.length === checklist.length
-  const open = temple.status !== 'verified'
+  const open = temple.status === 'pending'
+  const docFile = (docType: string) =>
+    temple.documents?.find((doc) => doc.docType === docType)?.fileId
 
-  const verify = () => {
-    run((current) =>
-      decideTemple(current, temple.id, 'verified', badge, ''),
+  const verify = async () => {
+    const done = await act(
+      () => adminApi.verifyTemple(temple.id, badge),
+      t('{name} is verified. It now appears as a pickup point.', {
+        name: temple.name,
+      }),
     )
-    toast(t('{name} is verified. It now appears as a pickup point.', {
-      name: temple.name,
-    }))
-    onDone()
+    if (done) onDone()
   }
 
-  const requestChanges = () => {
+  const requestChanges = async () => {
     if (!note.trim()) {
       setNoteError(t('Say what needs to change.'))
       return
     }
-    run((current) =>
-      decideTemple(current, temple.id, 'needsChanges', '', note.trim()),
+    const done = await act(
+      () => adminApi.requestTempleChanges(temple.id, note.trim()),
+      t('Changes requested from {name}.', { name: temple.name }),
     )
-    toast(t('Changes requested from {name}.', { name: temple.name }))
-    onDone()
+    if (done) onDone()
   }
 
   return (
@@ -107,8 +109,11 @@ const TempleDetail = ({
               ? t('Registration certificate')
               : t('Committee letter')
           }
+          fileId={docFile(
+            temple.type === 'registered' ? 'Registration certificate' : 'Committee letter',
+          )}
         />
-        <PhotoTile label={t('Admin ID proof')} />
+        <PhotoTile label={t('Admin ID proof')} fileId={docFile('Admin ID proof')} />
       </div>
       {temple.note && (
         <p className="rounded-2xl border border-sindoor/50 p-3 text-sindoor">
@@ -151,7 +156,7 @@ const TempleDetail = ({
               ))}
             </div>
           </fieldset>
-          <Button full disabled={!allChecked} icon="badge" onClick={verify}>
+          <Button full disabled={!allChecked || busy} icon="badge" onClick={verify}>
             {t('Verify and issue badge')}
           </Button>
           <Field label={t('What needs to change?')} error={noteError}>
@@ -166,7 +171,7 @@ const TempleDetail = ({
               />
             )}
           </Field>
-          <Button variant="danger" full onClick={requestChanges}>
+          <Button variant="danger" full disabled={busy} onClick={requestChanges}>
             {t('Request changes')}
           </Button>
         </>
@@ -184,7 +189,8 @@ const TempleDetail = ({
 }
 
 const Temples = () => {
-  const { state, run, toast } = useStore()
+  const { state } = useStore()
+  const { act, busy } = useAction()
   const t = useT()
   const [tab, setTab] = useState<Tab>('pending')
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -203,23 +209,25 @@ const Temples = () => {
   const canAdd =
     name.trim() && address.trim() && contact.trim() && /^[6-9]\d{9}$/.test(mobile)
 
-  const saveTemple = () => {
-    run((current) =>
-      addTemple(current, {
-        name: name.trim(),
-        type,
-        address: address.trim(),
-        contact: contact.trim(),
-        mobile,
-      }),
+  const saveTemple = async () => {
+    const done = await act(
+      () =>
+        adminApi.addTemple({
+          name: name.trim(),
+          type,
+          address: address.trim(),
+          contact: contact.trim(),
+          mobile,
+        }),
+      t('Temple added to the list to verify.'),
     )
+    if (!done) return
     setAdding(false)
     setName('')
     setAddress('')
     setContact('')
     setMobile('')
     setTab('pending')
-    toast(t('Temple added to the list to verify.'))
   }
 
   const columns: Column<Temple>[] = [
@@ -290,7 +298,7 @@ const Temples = () => {
         title={t('Add temple')}
         onClose={() => setAdding(false)}
         footer={
-          <Button full disabled={!canAdd} onClick={saveTemple}>
+          <Button full disabled={!canAdd || busy} onClick={saveTemple}>
             {t('Save temple')}
           </Button>
         }

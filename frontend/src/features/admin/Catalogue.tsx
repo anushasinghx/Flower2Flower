@@ -8,8 +8,8 @@ import {
   Sheet,
   TextInput,
 } from '../../components/ui/kit'
-import { useStore, useT } from '../../store/appStore'
-import { saveProduct } from '../../store/actions'
+import { useAction, useStore, useT } from '../../store/appStore'
+import { adminApi } from '../../store/remote'
 import type { Product } from '../../store/types'
 import { formatNumber, stockTone } from '../../utils/points'
 
@@ -29,7 +29,8 @@ const blankProduct = (): Product => ({
 })
 
 const Catalogue = () => {
-  const { state, run, toast } = useStore()
+  const { state } = useStore()
+  const { act, busy } = useAction()
   const t = useT()
   const [editing, setEditing] = useState<Product | null>(null)
   const isNew =
@@ -39,10 +40,13 @@ const Catalogue = () => {
   const change = (update: Partial<Product>) =>
     setEditing((current) => (current ? { ...current, ...update } : current))
 
-  const save = (product: Product) => {
-    run((current) => saveProduct(current, product))
-    setEditing(null)
-    toast(t('Catalogue updated.'))
+  const save = async (product: Product) => {
+    const exists = state.products.some((item) => item.id === product.id)
+    const done = await act(
+      () => adminApi.saveProduct(product, exists),
+      t('Catalogue updated.'),
+    )
+    if (done) setEditing(null)
   }
 
   const columns: Column<Product>[] = [
@@ -114,7 +118,7 @@ const Catalogue = () => {
             <div className="grid gap-2 sm:grid-cols-2">
               <Button
                 full
-                disabled={!editing.name.trim() || !editing.pack.trim()}
+                disabled={!editing.name.trim() || !editing.pack.trim() || busy}
                 onClick={() => save(editing)}
               >
                 {t('Save')}

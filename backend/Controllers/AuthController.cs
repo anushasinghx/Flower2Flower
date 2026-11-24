@@ -214,17 +214,12 @@ public sealed class AuthController : ControllerBase
         }
 
         var user = await _dbContext.Users.FirstOrDefaultAsync(x => x.NormalizedMobileNumber == normalized);
-        if (user is null)
-        {
-            return Ok(new { message = "If this number is registered, an OTP has been sent." });
-        }
-
-        if (user.AccountStatus != "Active")
+        if (user is not null && user.AccountStatus != "Active")
         {
             return StatusCode(StatusCodes.Status403Forbidden, new { message = "This account is not active." });
         }
 
-        if (!IsLoginRequestAllowed(normalized))
+        if (!_otpService.UsesDevelopmentCode && !IsLoginRequestAllowed(normalized))
         {
             return StatusCode(StatusCodes.Status429TooManyRequests, new { message = "Too many OTP attempts. Please try again later." });
         }
@@ -253,9 +248,14 @@ public sealed class AuthController : ControllerBase
         }
 
         var user = await _dbContext.Users.FirstOrDefaultAsync(x => x.NormalizedMobileNumber == normalized);
-        if (user is null || user.AccountStatus != "Active")
+        if (user is not null && user.AccountStatus != "Active")
         {
-            return BadRequest(new { message = "Account not found or inactive." });
+            return BadRequest(new { message = "This account is not active." });
+        }
+
+        if (user is null && !request.CreateAccount)
+        {
+            return BadRequest(new { message = "No account found for this number." });
         }
 
         var verificationResult = await _otpService.VerifyOtpAsync(normalized, request.Otp);
@@ -264,6 +264,23 @@ public sealed class AuthController : ControllerBase
             return BadRequest(new { message = verificationResult.Message });
         }
 
+        var isNewUser = user is null;
+        if (user is null)
+        {
+            user = new User
+            {
+                Id = Guid.NewGuid(),
+                MobileNumber = normalized,
+                NormalizedMobileNumber = normalized,
+                UserType = UserType.Devotee,
+                MobileVerified = true,
+                AccountStatus = "Active",
+                CreatedAtUtc = DateTime.UtcNow
+            };
+            _dbContext.Users.Add(user);
+        }
+
+        user.MobileVerified = true;
         user.LastLoginAtUtc = DateTime.UtcNow;
         user.UpdatedAtUtc = DateTime.UtcNow;
         await _dbContext.SaveChangesAsync();
@@ -284,7 +301,9 @@ public sealed class AuthController : ControllerBase
             UserType = user.UserType,
             MobileVerified = user.MobileVerified,
             AccountStatus = user.AccountStatus,
-            CreatedAtUtc = user.CreatedAtUtc
+            CreatedAtUtc = user.CreatedAtUtc,
+            IsNewUser = isNewUser,
+            ProfileComplete = !string.IsNullOrWhiteSpace(user.FullName) && user.DateOfBirth.HasValue
         };
 
         return Ok(response);

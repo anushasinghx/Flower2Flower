@@ -14,17 +14,18 @@ import OrderSummary from './OrderSummary'
 import { useStore, useT } from '../../store/appStore'
 import {
   applyPoints,
-  nextOrderId,
-  placeOrder,
+  clearCart,
   setFulfilment,
   setPayWith,
   setPickupTemple,
 } from '../../store/actions'
+import { devotee as devoteeApi } from '../../store/remote'
+import { errorMessage } from '../../services/api'
 import type { Fulfilment } from '../../store/types'
 import { cartTotals, formatNumber } from '../../utils/points'
 
 const Checkout = () => {
-  const { state, run } = useStore()
+  const { state, run, toast, refresh } = useStore()
   const t = useT()
   const navigate = useNavigate()
   const totals = cartTotals(state)
@@ -34,6 +35,7 @@ const Checkout = () => {
   const [phone, setPhone] = useState(state.devotee.mobile)
   const [tried, setTried] = useState(false)
   const [placed, setPlaced] = useState(false)
+  const [placing, setPlacing] = useState(false)
   const verified = state.devotee.kyc === 'verified'
   const canUsePoints = verified && totals.available > 0
   const canPayAllPoints = verified && totals.pointsShort === 0
@@ -50,15 +52,31 @@ const Checkout = () => {
       /^\d{6}$/.test(pin) &&
       /^[6-9]\d{9}$/.test(phone))
 
-  const submit = () => {
+  const submit = async () => {
     setTried(true)
     if (!addressValid) return
+    if (!delivery && !state.pickupTempleId) {
+      toast(t('Choose a temple for pickup.'))
+      return
+    }
 
-    const orderId = nextOrderId(state)
-    const fullAddress = `${address.trim()}, ${pin}`
-    setPlaced(true)
-    run((current) => placeOrder(current, orderId, fullAddress))
-    navigate(`/app/orders/${orderId}?placed=1`, { replace: true })
+    setPlacing(true)
+    try {
+      const orderId = await devoteeApi.placeOrder(state, {
+        name: name.trim(),
+        phone,
+        address: address.trim(),
+        pin,
+      })
+      setPlaced(true)
+      run(clearCart)
+      await refresh()
+      navigate(`/app/orders/${orderId}?placed=1`, { replace: true })
+    } catch (problem) {
+      toast(t(errorMessage(problem)))
+    } finally {
+      setPlacing(false)
+    }
   }
 
   return (
@@ -252,7 +270,7 @@ const Checkout = () => {
 
         <div className="flex flex-col gap-4 lg:sticky lg:top-24">
           <OrderSummary totals={totals} />
-          <Button full onClick={submit}>
+          <Button full disabled={placing} onClick={submit}>
             {t('Place order')}
           </Button>
         </div>

@@ -18,7 +18,9 @@ import {
   DEMO_OPERATOR_MOBILE,
   DEMO_OTP,
   DEMO_TEMPLE_MOBILE,
-} from '../../services/mockData'
+} from '../../store/initialState'
+import { auth } from '../../store/remote'
+import { errorMessage } from '../../services/api'
 
 const MobileNumber = () => {
   const { run } = useStore()
@@ -28,8 +30,9 @@ const MobileNumber = () => {
   const [mobile, setMobileValue] = useState('')
   const [agreed, setAgreed] = useState(false)
   const [error, setError] = useState('')
+  const [sending, setSending] = useState(false)
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
     if (!/^[6-9]\d{9}$/.test(mobile)) {
@@ -41,8 +44,16 @@ const MobileNumber = () => {
       return
     }
 
-    run((state) => setMobile(state, mobile))
-    navigate('/verify')
+    setSending(true)
+    try {
+      await auth.sendOtp(mobile)
+      run((state) => setMobile(state, mobile))
+      navigate('/verify')
+    } catch (problem) {
+      setError(t(errorMessage(problem)))
+    } finally {
+      setSending(false)
+    }
   }
 
   return (
@@ -83,7 +94,7 @@ const MobileNumber = () => {
           >
             {t('I agree to the Terms and Privacy Notice.')}
           </CheckRow>
-          <Button type="submit" full>
+          <Button type="submit" full disabled={sending}>
             {t('Send OTP')}
           </Button>
         </Card>

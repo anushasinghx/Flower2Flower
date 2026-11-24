@@ -31,6 +31,8 @@ public sealed class Fast2SmsOtpService
         }
     }
 
+    public bool UsesDevelopmentCode => DevelopmentCode is not null;
+
     public string NormalizeMobileNumber(string mobile)
     {
         return new string((mobile ?? string.Empty).Trim().Where(char.IsDigit).ToArray());

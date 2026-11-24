@@ -13,10 +13,12 @@ import {
 } from '../../components/ui/kit'
 import { DepositSteps } from './common'
 import { useStore, useT } from '../../store/appStore'
-import { findDevotee, startDraft } from '../../store/fieldActions'
+import { startDraft } from '../../store/fieldActions'
 import type { DevoteeSummary } from '../../store/types'
 import { maskMobile } from '../../utils/points'
-import { DEMO_DEVOTEE_MOBILE } from '../../services/mockData'
+import { DEMO_DEVOTEE_MOBILE } from '../../store/initialState'
+import { operatorApi } from '../../store/remote'
+import { errorMessage } from '../../services/api'
 
 const FindDevotee = () => {
   const { state, run } = useStore()
@@ -26,20 +28,33 @@ const FindDevotee = () => {
   const [error, setError] = useState('')
   const [result, setResult] = useState<DevoteeSummary | null | undefined>()
   const [scanning, setScanning] = useState(false)
+  const [searching, setSearching] = useState(false)
 
-  const lookUp = (number: string) => {
+  const lookUp = async (number: string) => {
     if (!/^[6-9]\d{9}$/.test(number)) {
       setError(t('Enter a valid 10 digit number starting with 6, 7, 8 or 9.'))
       setResult(undefined)
       return
     }
     setError('')
-    setResult(findDevotee(state, number))
+    setSearching(true)
+    try {
+      setResult(await operatorApi.lookup(number))
+    } catch (problem) {
+      if ((problem as { status?: number }).status === 404) {
+        setResult(null)
+      } else {
+        setResult(undefined)
+        setError(t(errorMessage(problem)))
+      }
+    } finally {
+      setSearching(false)
+    }
   }
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    lookUp(mobile)
+    void lookUp(mobile)
   }
 
   const society = result
@@ -74,7 +89,7 @@ const FindDevotee = () => {
             )}
           </Field>
           <div className="grid grid-cols-2 gap-3">
-            <Button type="submit" full icon="search">
+            <Button type="submit" full icon="search" disabled={searching}>
               {t('Look up')}
             </Button>
             <Button
@@ -117,7 +132,7 @@ const FindDevotee = () => {
           <Button
             full
             onClick={() => {
-              run((current) => startDraft(current, result.mobile))
+              run((current) => startDraft(current, result))
               navigate('/operator/waste')
             }}
           >
@@ -152,7 +167,7 @@ const FindDevotee = () => {
             onClick={() => {
               setScanning(false)
               setMobile(DEMO_DEVOTEE_MOBILE)
-              lookUp(DEMO_DEVOTEE_MOBILE)
+              void lookUp(DEMO_DEVOTEE_MOBILE)
             }}
           >
             {t('Use demo QR (Sunita)')}

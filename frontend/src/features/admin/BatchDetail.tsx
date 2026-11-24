@@ -13,13 +13,14 @@ import {
   StatusList,
   TextInput,
 } from '../../components/ui/kit'
-import { useStore, useT } from '../../store/appStore'
-import { moveBatch, updateStock } from '../../store/actions'
+import { useAction, useStore, useT } from '../../store/appStore'
+import { adminApi } from '../../store/remote'
 import { formatNumber } from '../../utils/points'
 
 const BatchDetail = () => {
   const { id } = useParams()
-  const { state, run, toast } = useStore()
+  const { state, toast } = useStore()
+  const { act, busy } = useAction()
   const t = useT()
   const batch = state.batches.find((item) => item.id === id)
   const products = state.products.filter((item) => item.group === 'manure')
@@ -54,10 +55,12 @@ const BatchDetail = () => {
   const canUpdate =
     batch.status === 'ready' && outputNumber > 0 && lines.length > 0
 
-  const update = () => {
-    run((current) => updateStock(current, batch.id, outputNumber, lines))
-    setUnits({})
-    toast(t('Sellable stock updated. Catalogue and shop now show it.'))
+  const update = async () => {
+    const done = await act(
+      () => adminApi.updateStock(batch.id, outputNumber, lines),
+      t('Sellable stock updated. Catalogue and shop now show it.'),
+    )
+    if (done) setUnits({})
   }
 
   return (
@@ -90,20 +93,13 @@ const BatchDetail = () => {
               {nextStage && (
                 <Button
                   full
-                  onClick={() => {
-                    run((current) =>
-                      moveBatch(
-                        current,
-                        batch.id,
-                        nextStage.value,
-                        nextStage.label,
-                        '',
-                      ),
-                    )
-                    toast(
+                  disabled={busy}
+                  onClick={() =>
+                    void act(
+                      () => adminApi.moveBatch(batch.id, nextStage.value, ''),
                       t('Moved to {stage}.', { stage: t(nextStage.label) }),
                     )
-                  }}
+                  }
                 >
                   {t('Move to {stage}', { stage: t(nextStage.label) })}
                 </Button>
@@ -210,7 +206,7 @@ const BatchDetail = () => {
               </div>
             </div>
 
-            <Button full disabled={!canUpdate} onClick={update}>
+            <Button full disabled={!canUpdate || busy} onClick={update}>
               {t('Update sellable stock')}
             </Button>
           </Card>
@@ -235,23 +231,16 @@ const BatchDetail = () => {
         footer={
           <Button
             full
-            disabled={!backReason.trim()}
-            onClick={() => {
+            disabled={!backReason.trim() || busy}
+            onClick={async () => {
               if (!previousStage) return
-              run((current) =>
-                moveBatch(
-                  current,
-                  batch.id,
-                  previousStage.value,
-                  previousStage.label,
-                  backReason.trim(),
-                ),
-              )
-              setMovingBack(false)
-              setBackReason('')
-              toast(
+              const done = await act(
+                () => adminApi.moveBatch(batch.id, previousStage.value, backReason.trim()),
                 t('Moved to {stage}.', { stage: t(previousStage.label) }),
               )
+              if (!done) return
+              setMovingBack(false)
+              setBackReason('')
             }}
           >
             {t('Move to {stage}', { stage: t(previousStage?.label ?? '') })}

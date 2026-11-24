@@ -11,8 +11,9 @@ import {
   TextInput,
 } from '../../components/ui/kit'
 import { useStore, useT } from '../../store/appStore'
-import { registerAssisted } from '../../store/fieldActions'
-import { DEMO_OTP } from '../../services/mockData'
+import { startDraft } from '../../store/fieldActions'
+import { operatorApi } from '../../store/remote'
+import { errorMessage } from '../../services/api'
 
 const ageFrom = (date: string) => {
   const birth = new Date(date)
@@ -37,6 +38,7 @@ const AssistedRegister = () => {
   const [otpSent, setOtpSent] = useState(false)
   const [code, setCode] = useState('')
   const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
 
   const validate = () => {
     if (!/^[6-9]\d{9}$/.test(mobile)) return t('Enter a valid mobile number.')
@@ -49,20 +51,39 @@ const AssistedRegister = () => {
     return ''
   }
 
-  const sendOtp = () => {
+  const sendOtp = async () => {
     const problem = validate()
     setError(problem)
-    if (!problem) setOtpSent(true)
+    if (problem) return
+    setBusy(true)
+    try {
+      await operatorApi.sendOtp(mobile)
+      setOtpSent(true)
+    } catch (failure) {
+      setError(t(errorMessage(failure)))
+    } finally {
+      setBusy(false)
+    }
   }
 
-  const confirm = () => {
-    if (code !== DEMO_OTP) {
-      setError(t('Incorrect code. Try again.'))
-      return
+  const confirm = async () => {
+    setBusy(true)
+    try {
+      const devotee = await operatorApi.register({
+        mobile,
+        otp: code,
+        name: name.trim(),
+        dob,
+        language,
+      })
+      run((current) => startDraft(current, devotee))
+      toast(t('{name} is registered. Continue with the deposit.', { name: devotee.name }))
+      navigate('/operator/waste')
+    } catch (failure) {
+      setError(t(errorMessage(failure)))
+    } finally {
+      setBusy(false)
     }
-    run((current) => registerAssisted(current, { mobile, name: name.trim() }))
-    toast(t('{name} is registered. Continue with the deposit.', { name }))
-    navigate('/operator/waste')
   }
 
   return (
@@ -161,11 +182,11 @@ const AssistedRegister = () => {
         )}
 
         {otpSent ? (
-          <Button full disabled={code.length < 6} onClick={confirm}>
+          <Button full disabled={code.length < 6 || busy} onClick={confirm}>
             {t('Confirm and register')}
           </Button>
         ) : (
-          <Button full onClick={sendOtp}>
+          <Button full disabled={busy} onClick={sendOtp}>
             {t('Send OTP to devotee')}
           </Button>
         )}

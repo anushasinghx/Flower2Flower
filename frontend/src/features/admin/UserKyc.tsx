@@ -16,8 +16,9 @@ import {
   Pill,
   TextArea,
 } from '../../components/ui/kit'
-import { useStore, useT } from '../../store/appStore'
-import { decideKyc, logUnmask } from '../../store/actions'
+import { useAction, useStore, useT } from '../../store/appStore'
+import { adminApi } from '../../store/remote'
+import { errorMessage } from '../../services/api'
 import type { KycRequest } from '../../store/types'
 import { maskDocument, maskMobile } from '../../utils/points'
 
@@ -32,14 +33,17 @@ const StatusPill = ({ status }: { status: KycRequest['status'] }) => {
 }
 
 const UserKyc = () => {
-  const { state, run, toast } = useStore()
+  const { state, toast } = useStore()
+  const { act, busy } = useAction()
   const t = useT()
   const [tab, setTab] = useState<Tab>('pending')
   const [query, setQuery] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [reason, setReason] = useState('')
   const [reasonError, setReasonError] = useState('')
-  const [revealed, setRevealed] = useState<string[]>([])
+  const [revealed, setRevealed] = useState<
+    Record<string, { docNumber: string; mobile: string; front: string; back: string | null }>
+  >({})
 
   const requests = state.kycRequests
   const pendingCount = requests.filter((item) => item.status === 'pending').length
@@ -49,7 +53,8 @@ const UserKyc = () => {
       `${item.name} ${item.id}`.toLowerCase().includes(query.trim().toLowerCase()),
   )
   const selected = requests.find((item) => item.id === selectedId) ?? null
-  const isRevealed = selected ? revealed.includes(selected.id) : false
+  const unmasked = selected ? revealed[selected.id] : undefined
+  const isRevealed = Boolean(unmasked)
 
   const close = () => {
     setSelectedId(null)
@@ -57,7 +62,7 @@ const UserKyc = () => {
     setReasonError('')
   }
 
-  const decide = (approve: boolean) => {
+  const decide = async (approve: boolean) => {
     if (!selected) return
 
     if (!approve && !reason.trim()) {
@@ -65,21 +70,31 @@ const UserKyc = () => {
       return
     }
 
-    run((current) =>
-      decideKyc(current, selected.id, approve, approve ? '' : reason.trim()),
-    )
-    toast(
+    const done = await act(
+      () => adminApi.decideKyc(selected.id, approve, approve ? '' : reason.trim()),
       approve
         ? t('{name} is now verified.', { name: selected.name })
         : t('{name} was rejected.', { name: selected.name }),
     )
-    close()
+    if (done) close()
   }
 
-  const reveal = () => {
+  const reveal = async () => {
     if (!selected) return
-    setRevealed([...revealed, selected.id])
-    run((current) => logUnmask(current, selected.id))
+    try {
+      const data = await adminApi.unmaskKyc(selected.id)
+      setRevealed({
+        ...revealed,
+        [selected.id]: {
+          docNumber: data.docNumber,
+          mobile: data.mobileNumber,
+          front: data.frontFileId,
+          back: data.backFileId,
+        },
+      })
+    } catch (problem) {
+      toast(t(errorMessage(problem)))
+    }
   }
 
   const columns: Column<KycRequest>[] = [
@@ -145,12 +160,12 @@ const UserKyc = () => {
           selected && (
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between gap-3">
-                <span className="text-muted">{selected.id}</span>
+                <span className="text-muted">{t('Submitted')} {selected.submitted}</span>
                 <StatusPill status={selected.status} />
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <PhotoTile label={t('ID front')} />
-                <PhotoTile label={t('ID back')} />
+                <PhotoTile label={t('ID front')} fileId={unmasked?.front} />
+                <PhotoTile label={t('ID back')} fileId={unmasked?.back} />
               </div>
               <div>
                 <DetailRow label={t('Name on ID')}>{selected.name}</DetailRow>
@@ -158,13 +173,13 @@ const UserKyc = () => {
                   {selected.dob} · 18+
                 </DetailRow>
                 <DetailRow label={t('Document number')}>
-                  {isRevealed
-                    ? selected.docNumber
+                  {unmasked
+                    ? unmasked.docNumber
                     : maskDocument(selected.docNumber)}{' '}
                   {!isRevealed && (
                     <button
                       type="button"
-                      onClick={reveal}
+                      onClick={() => void reveal()}
                       className="ml-1 text-sm font-medium text-marigold underline underline-offset-4"
                     >
                       {t('Reveal')}
@@ -199,10 +214,10 @@ const UserKyc = () => {
                     )}
                   </Field>
                   <div className="grid grid-cols-2 gap-3">
-                    <Button full icon="check" onClick={() => decide(true)}>
+                    <Button full icon="check" disabled={busy} onClick={() => decide(true)}>
                       {t('Approve')}
                     </Button>
-                    <Button variant="danger" full onClick={() => decide(false)}>
+                    <Button variant="danger" full disabled={busy} onClick={() => decide(false)}>
                       {t('Reject')}
                     </Button>
                   </div>

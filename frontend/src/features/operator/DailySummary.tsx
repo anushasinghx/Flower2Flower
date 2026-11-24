@@ -3,12 +3,14 @@ import ScreenHeader from '../../components/Layout/ScreenHeader'
 import { Button, Card, EmptyState, InfoNote } from '../../components/ui/kit'
 import { DepositStatusPill } from './common'
 import { formatKg, timeOf } from './helpers'
-import { useStore, useT } from '../../store/appStore'
-import { closeDay, isToday } from '../../store/fieldActions'
+import { useAction, useStore, useT } from '../../store/appStore'
+import { isToday } from '../../store/fieldActions'
+import { operatorApi } from '../../store/remote'
 import { todayLabel } from '../../utils/points'
 
 const DailySummary = () => {
-  const { state, run, toast } = useStore()
+  const { state } = useStore()
+  const { act, busy } = useAction()
   const t = useT()
   const { templeId } = state.operator
   const temple = state.temples.find((item) => item.id === templeId)
@@ -133,11 +135,13 @@ const DailySummary = () => {
         <Button
           full
           variant={closedToday ? 'secondary' : 'primary'}
-          disabled={pending > 0 || counted.length === 0}
-          onClick={() => {
-            run(closeDay)
-            toast(t('Day closed. The nursery can now add it to a batch.'))
-          }}
+          disabled={pending > 0 || counted.length === 0 || busy || closedToday?.used}
+          onClick={() =>
+            void act(
+              () => operatorApi.closeDay(templeId),
+              t('Day closed. The nursery can now add it to a batch.'),
+            )
+          }
         >
           {closedToday ? t('Update the closed day') : t('Close day and send to nursery')}
         </Button>

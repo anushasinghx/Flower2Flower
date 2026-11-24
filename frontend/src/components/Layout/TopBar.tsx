@@ -7,6 +7,8 @@ import LangSwitch from './LangSwitch'
 import LogoutButton from './LogoutButton'
 import { useStore, useT } from '../../store/appStore'
 import { devoteeNav } from './devoteeNav'
+import { publicApi } from '../../store/remote'
+import { errorMessage } from '../../services/api'
 
 const TopBar = ({ showNav = false }: { showNav?: boolean }) => {
   const { state, toast } = useStore()
@@ -16,11 +18,19 @@ const TopBar = ({ showNav = false }: { showNav?: boolean }) => {
   const [expected, setExpected] = useState('')
   const count = state.cart.reduce((sum, line) => sum + line.qty, 0)
 
-  const submitFeedback = () => {
-    setFeedbackOpen(false)
-    setHappened('')
-    setExpected('')
-    toast(t('Thank you. Your feedback was sent.'))
+  const submitFeedback = async () => {
+    const text = expected.trim()
+      ? `${happened.trim()}\n\nExpected: ${expected.trim()}`
+      : happened.trim()
+    try {
+      await publicApi.contact(state.user?.name ?? '', text, 'feedback')
+      setFeedbackOpen(false)
+      setHappened('')
+      setExpected('')
+      toast(t('Thank you. Your feedback was sent.'))
+    } catch (problem) {
+      toast(t(errorMessage(problem)))
+    }
   }
 
   return (
